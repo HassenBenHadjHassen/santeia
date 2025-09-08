@@ -2,6 +2,7 @@
 import { BaseService } from "./BaseService";
 import { UserRepository } from "@/repositories/UserRepository";
 import { User as IUser, ServiceResponse, ValidationError } from "@/types";
+import bcrypt from "bcryptjs";
 
 export class UserService extends BaseService<IUser> {
   protected modelName = "User";
@@ -49,6 +50,11 @@ export class UserService extends BaseService<IUser> {
             value: data.email,
           },
         ]);
+      }
+
+      // Hash password if provided
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 12);
       }
 
       // Create new user
@@ -180,9 +186,21 @@ export class UserService extends BaseService<IUser> {
     password: string
   ): Promise<ServiceResponse<IUser>> {
     try {
-      const user = await this.userRepository.validatePassword(email, password);
+      const user = await this.userRepository.findByEmail(email);
 
       if (!user) {
+        return this.createErrorResponse("Invalid email or password");
+      }
+
+      // Check if user has a password (for users created before password auth)
+      if (!user.password) {
+        return this.createErrorResponse("Invalid email or password");
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+
+      if (!isValidPassword) {
         return this.createErrorResponse("Invalid email or password");
       }
 

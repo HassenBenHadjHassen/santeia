@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "components/ui/button";
 import { Input } from "components/ui/input";
 import {
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "components/ui/card";
 import { Heart, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../lib/auth-context";
 
 export function meta() {
   return [
@@ -24,11 +25,24 @@ export default function Login() {
     email: "",
     password: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { login, error, clearError } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", formData);
+    setIsSubmitting(true);
+    clearError();
+
+    try {
+      await login(formData);
+      navigate("/");
+    } catch (err) {
+      // Error is handled by the auth context
+      console.error("Login error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +65,11 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
@@ -111,16 +130,11 @@ export default function Login() {
                   Remember me
                 </label>
               </div>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
+              <span className="text-sm text-muted-foreground" />
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign in
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 

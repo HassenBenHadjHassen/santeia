@@ -2,13 +2,41 @@
 import { Router } from "express";
 import { UserController } from "@/controllers/UserController";
 import { validateRequest, commonSchemas } from "@/middleware/validation";
-import { generalRateLimit } from "@/middleware/security";
+import { generalRateLimit, authRateLimit } from "@/middleware/security";
+import Joi from "joi";
 
 const router = Router();
 const userController = new UserController();
 
 // Apply rate limiting to all user routes
 router.use(generalRateLimit);
+
+// Authentication routes with stricter rate limiting
+router.post(
+  "/login",
+  authRateLimit,
+  validateRequest({
+    body: Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string().min(6).required(),
+    }),
+  }),
+  userController.login
+);
+
+router.post(
+  "/signup",
+  authRateLimit,
+  validateRequest({
+    body: Joi.object({
+      firstName: Joi.string().min(2).max(50).required(),
+      lastName: Joi.string().min(2).max(50).required(),
+      email: Joi.string().email().required(),
+      password: Joi.string().min(8).required(),
+    }),
+  }),
+  userController.signup
+);
 
 // User routes
 router.post(

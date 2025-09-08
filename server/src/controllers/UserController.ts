@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from "express";
 import { BaseController } from "./BaseController";
 import { UserService } from "@/services/UserService";
 import { User as IUser } from "@/types";
+import jwt from "jsonwebtoken";
+import { config } from "@/config/environment";
 
 export class UserController extends BaseController {
   private userService: UserService;
@@ -124,6 +126,99 @@ export class UserController extends BaseController {
 
       const result = await this.userService.delete(id);
       this.sendServiceResponse(res, result);
+    });
+  };
+
+  public login = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        this.sendError(res, "Email and password are required", 400);
+        return;
+      }
+
+      const result = await this.userService.validatePassword(email, password);
+
+      if (!result.success) {
+        this.sendError(res, result.error || "Invalid credentials", 401);
+        return;
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        {
+          userId: result.data?.id,
+          email: result.data?.email,
+          role: result.data?.role,
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
+
+      this.sendSuccess(
+        res,
+        {
+          user: result.data,
+          token,
+        },
+        "Login successful"
+      );
+    });
+  };
+
+  public signup = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { firstName, lastName, email, password } = req.body;
+
+      if (!firstName || !lastName || !email || !password) {
+        this.sendError(res, "All fields are required", 400);
+        return;
+      }
+
+      const userData: Partial<IUser> = {
+        email,
+        name: `${firstName} ${lastName}`,
+        role: "USER",
+        isActive: true,
+        password,
+      };
+
+      const result = await this.userService.create(userData);
+
+      if (!result.success) {
+        this.sendError(res, result.error || "Failed to create user", 400);
+        return;
+      }
+
+      // Generate JWT token for new user
+      const token = jwt.sign(
+        {
+          userId: result.data?.id,
+          email: result.data?.email,
+          role: result.data?.role,
+        },
+        config.JWT_SECRET,
+        { expiresIn: config.JWT_EXPIRES_IN }
+      );
+
+      this.sendSuccess(
+        res,
+        {
+          user: result.data,
+          token,
+        },
+        "User created successfully",
+        201
+      );
     });
   };
 }

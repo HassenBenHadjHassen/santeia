@@ -55,11 +55,9 @@ pnpm dev
 ```
 app/
 ├── routes/           # Page components
-│   ├── home.tsx     # Landing page
 │   ├── login.tsx    # Login page
 │   ├── signup.tsx   # Signup page
 │   ├── chat.tsx     # Chat interface
-│   └── dashboard.tsx # User dashboard
 ├── components/       # Reusable components
 │   ├── ui/          # shadcn/ui components
 │   ├── layout/      # Layout components

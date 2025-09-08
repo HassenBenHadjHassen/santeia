@@ -2,28 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "components/ui/button";
-import {
-  Heart,
-  Menu,
-  X,
-  MessageSquare,
-  BarChart3,
-  Lightbulb,
-  Settings,
-  Plus,
-} from "lucide-react";
+import { Heart, Menu, X, Plus } from "lucide-react";
 import { Link } from "react-router";
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navigation = [
-    { name: "New Chat", to: "/", icon: Plus },
-    { name: "Chat History", to: "/history", icon: MessageSquare },
-    { name: "Dashboard", to: "/dashboard", icon: BarChart3 },
-    { name: "Insights", to: "/insights", icon: Lightbulb },
-    { name: "Settings", to: "/settings", icon: Settings },
-  ];
+  const navigation = [{ name: "New Chat", to: "/", icon: Plus }];
 
   return (
     <>

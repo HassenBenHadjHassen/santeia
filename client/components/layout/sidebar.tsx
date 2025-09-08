@@ -1,14 +1,7 @@
 "use client";
 
 import { cn } from "lib/utils";
-import {
-  Heart,
-  MessageSquare,
-  BarChart3,
-  Lightbulb,
-  Settings,
-  Plus,
-} from "lucide-react";
+import { Heart, Plus } from "lucide-react";
 import { Button } from "components/ui/button";
 import { ScrollArea } from "components/ui/scroll-area";
 import { Link, useLocation } from "react-router";
@@ -17,13 +10,7 @@ interface SidebarProps {
   className?: string;
 }
 
-const navigation = [
-  { name: "New Chat", to: "/", icon: Plus },
-  { name: "Chat History", to: "/history", icon: MessageSquare },
-  { name: "Dashboard", to: "/dashboard", icon: BarChart3 },
-  { name: "Insights", to: "/insights", icon: Lightbulb },
-  { name: "Settings", to: "/settings", icon: Settings },
-];
+const navigation = [{ name: "New Chat", to: "/", icon: Plus }];
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = useLocation();

@@ -22,7 +22,7 @@ export interface LLMResponse {
 }
 
 export class LLMService {
-	private openai: OpenAI;
+	private readonly openai: OpenAI;
 	private model: string;
 	private llmRepository: LLMRepository;
 

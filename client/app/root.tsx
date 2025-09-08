@@ -1,3 +1,4 @@
+import type React from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -9,6 +10,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { AuthProvider } from "../lib/auth-context";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -43,11 +45,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <main>
-        <Outlet />
-      </main>
-    </div>
+    <AuthProvider>
+      <div className="min-h-screen bg-background">
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    </AuthProvider>
   );
 }
 

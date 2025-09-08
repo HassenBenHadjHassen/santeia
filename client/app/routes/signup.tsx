@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "components/ui/button";
 import { Input } from "components/ui/input";
 import {
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "components/ui/card";
 import { Heart, Eye, EyeOff, Check } from "lucide-react";
+import { useAuth } from "../../lib/auth-context";
 
 export function meta() {
   return [
@@ -29,19 +30,49 @@ export default function Signup() {
     confirmPassword: "",
     agreeToTerms: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const { signup, error, clearError } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    clearError();
+    setValidationErrors([]);
+
+    // Client-side validation
+    const errors: string[] = [];
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match");
-      return;
+      errors.push("Passwords don't match");
     }
     if (!formData.agreeToTerms) {
-      alert("Please agree to the terms and conditions");
+      errors.push("Please agree to the terms and conditions");
+    }
+    if (formData.password.length < 8) {
+      errors.push("Password must be at least 8 characters long");
+    }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setIsSubmitting(false);
       return;
     }
-    // Handle signup logic here
-    console.log("Signup attempt:", formData);
+
+    try {
+      await signup({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+      navigate("/");
+    } catch (err) {
+      // Error is handled by the auth context
+      console.error("Signup error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +103,16 @@ export default function Signup() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {(error || validationErrors.length > 0) && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              {validationErrors.map((err, index) => (
+                <p key={index} className="text-sm text-destructive">
+                  {err}
+                </p>
+              ))}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -221,19 +262,12 @@ export default function Signup() {
                 htmlFor="agreeToTerms"
                 className="text-sm text-muted-foreground"
               >
-                I agree to the{" "}
-                <Link to="/terms" className="text-primary hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>
+                I agree to the terms
               </label>
             </div>
 
-            <Button type="submit" className="w-full">
-              Create account
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating account..." : "Create account"}
             </Button>
           </form>
 

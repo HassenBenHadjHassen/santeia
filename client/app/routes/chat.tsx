@@ -1,7 +1,11 @@
+"use client";
+
 import { useState } from "react";
-import { ChatInterface } from "components/chat/chat-interface";
-import { Sidebar } from "components/layout/sidebar";
-import { Header } from "components/layout/header";
+import { ChatInterface } from "../../components/chat/chat-interface";
+import { Sidebar } from "../../components/layout/sidebar";
+import { Header } from "../../components/layout/header";
+import { ProtectedRoute } from "../../components/auth/protected-route";
+import { useAuth } from "../../lib/auth-context";
 
 export function meta() {
   return [
@@ -23,6 +27,7 @@ interface Message {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
@@ -60,27 +65,31 @@ Is there anything specific about your symptoms you'd like to discuss further?`,
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar - Hidden on mobile */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-muted/30">
-          <div className="flex flex-col flex-grow px-3">
-            <Sidebar />
+    <ProtectedRoute>
+      <div className="flex h-screen bg-background">
+        {/* Sidebar - Hidden on mobile */}
+        <div className="hidden lg:flex lg:w-64 lg:flex-col">
+          <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-muted/30">
+            <div className="flex flex-col flex-grow px-3">
+              <Sidebar />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Header
+            user={user ? { name: user.name, email: user.email } : undefined}
+          />
+          <div className="flex-1 overflow-hidden">
+            <ChatInterface
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header user={{ name: "John Doe", email: "john@example.com" }} />
-        <div className="flex-1 overflow-hidden">
-          <ChatInterface
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-    </div>
+    </ProtectedRoute>
   );
 }
