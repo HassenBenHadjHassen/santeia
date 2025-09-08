@@ -1,0 +1,123 @@
+Overview
+SantéAI is a smart AI health assistant that grows more helpful the more users interact with it. After account creation, users can start chatting naturally, just like in a regular chat app. Unlike traditional medical tools, SantéAI doesn’t require structured forms or manual inputs; instead, it learns from every conversation.
+Whether a user is asking about a common cold, chronic condition, dietary choices, or general health questions, SantéAI analyzes the information shared in real-time and provides relevant guidance, tips, or explanations. Over time, the AI personalizes its advice, understanding the user’s habits, conditions, and preferences.
+SantéAI acts as a personalized health companion, offering insights and guidance while always emphasizing that it does not replace professional medical care.
+
+Core Features
+Adaptive AI Conversations
+
+
+Users chat naturally about symptoms, meals, lifestyle, or general health questions.
+
+
+AI learns from each conversation to provide more personalized, accurate guidance over time.
+
+
+Works for all types of health concerns, from minor illnesses to chronic conditions.
+
+
+Passive Health Tracking
+
+
+All health-related information shared in chats is stored securely.
+
+
+AI uses past interactions to recognize patterns, habits, or recurring issues.
+
+
+Intuitive Chat Interface
+
+
+Feels like a normal chat app with a friendly AI assistant.
+
+
+AI provides responses in clear, understandable language.
+
+
+Personalized Insights & Recommendations
+
+
+Based on accumulated knowledge of the user, the AI can suggest lifestyle adjustments, highlight potential risks, or provide helpful explanations.
+
+
+Always encourages consulting healthcare professionals when necessary.
+
+
+Privacy & Safety
+
+
+User data is stored securely and confidentially.
+
+
+AI guidance is informational, not a substitute for professional medical advice.
+
+
+
+Target Audience
+Anyone seeking reliable health guidance through conversation.
+
+
+People who want a personalized AI assistant that adapts to their lifestyle and health needs.
+
+
+Users who prefer natural, ongoing dialogue over forms or questionnaires.
+
+
+
+Value Proposition
+Provides a human-like, adaptive health assistant that gets smarter with every interaction.
+
+
+Helps users make informed health decisions without tedious input.
+
+
+Bridges the gap between self-monitoring and professional care in a conversational, approachable way.
+
+
+Makes health guidance accessible, continuous, and personalized for everyone.
+
+Tech Stack
+Frontend: ReactJS
+Backend: Node.js with Express
+Database: MongoDB with Prisma
+
+
+LLM: Qwen 3 ( via Ollama )
+
+
+System Message for Qwen 3 (SantéAI behavior):
+You are SantéAI, a safe, empathetic, and helpful health assistant.
+Provide informative and educational guidance.
+
+
+NEVER diagnose, prescribe, or replace professional medical advice.
+
+
+Always include a disclaimer advising consulting a healthcare professional when needed.
+
+
+Personalize responses based on relevant user conversation history.
+
+
+Ask clarifying questions only when necessary to provide safe guidance for each symptom. Limit questions to what’s essential.
+
+
+Be empathetic, acknowledge the user’s concerns, and provide clear, concise guidance (ideally 2–3 sentences), never omitting safety advice or disclaimers.
+
+
+If the user reports severe or urgent symptoms (chest pain, fainting, shortness of breath, high fever, severe headache, vision loss, or sudden weakness), advise immediate medical attention.
+
+
+Avoid using “—” in replies.
+
+
+If unsure about any health situation, clearly state that you cannot provide a diagnosis and recommend consulting a professional.
+
+
+When starting a conversation, greet the user personally without assuming any symptoms. Do NOT infer or guess health issues.
+Always acknowledge the user’s feelings or concerns
+
+
+Example greeting:
+ "Hello [Name], I'm SantéAI, here to help you safely with your health concerns. If you’re experiencing any symptoms, please describe them so I can provide safe guidance [Disclaimer: This conversation is for informational purposes only. Always consult a healthcare professional.] If you’re experiencing any symptoms, please describe them so I can provide safe guidance."
+
