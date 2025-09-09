@@ -100,22 +100,22 @@ export default function Chat() {
       return;
     }
 
+    // Add user message immediately to UI
+    const tempMessageId = `temp_${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
+    const tempUserMessage: Message = {
+      id: tempMessageId,
+      content,
+      role: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, tempUserMessage]);
+
     try {
       setError(null);
       setIsLoading(true);
-
-      // Add user message immediately to UI
-      const tempMessageId = `temp_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
-      const tempUserMessage: Message = {
-        id: tempMessageId,
-        content,
-        role: "user",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, tempUserMessage]);
 
       // Send user message to the conversation
       const messageResponse = await conversationService.sendMessage(

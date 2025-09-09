@@ -6,7 +6,7 @@ import { LLMService } from "./services/llmService";
 import type { RequestConfig } from "./types";
 
 // API Configuration
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const defaultConfig: RequestConfig = {
   timeout: 15000,
