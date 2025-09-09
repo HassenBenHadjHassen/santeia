@@ -17,10 +17,10 @@ const startServer = async (): Promise<void> => {
 
     // Start HTTP server
     app.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+      console.log(`🚀 Server running on ${HOST}`);
       console.log(`📊 Environment: ${config.NODE_ENV}`);
-      console.log(`🔗 API Documentation: http://${HOST}:${PORT}/api`);
-      console.log(`❤️  Health Check: http://${HOST}:${PORT}/api/health`);
+      console.log(`🔗 API Documentation: ${HOST}/api`);
+      console.log(`❤️  Health Check: ${HOST}/api/health`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
