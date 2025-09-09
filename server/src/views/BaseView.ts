@@ -3,8 +3,8 @@ import { ApiResponse, PaginatedResponse } from "@/types";
 
 export abstract class BaseView {
   // Abstract methods that must be implemented by subclasses
-  public abstract formatSingle<T>(data: T): Record<string, any>;
-  public abstract formatList<T>(data: T[]): Record<string, any>;
+  public abstract formatSingle(data: any): Record<string, any>;
+  public abstract formatList(data: any[]): Record<string, any>;
 
   // Common formatting methods
   protected formatTimestamp(date: Date): string {

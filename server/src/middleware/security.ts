@@ -48,7 +48,9 @@ export const corsConfig = cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = config.CORS_ORIGIN.split(",").map((o) => o.trim());
+    const allowedOrigins = config.CORS_ORIGIN.split(",").map((o: string) =>
+      o.trim()
+    );
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);

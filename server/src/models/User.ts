@@ -5,14 +5,14 @@ import { User as IUser } from "@/types";
 export class User extends BaseModel implements IUser {
   public email: string;
   public name: string;
-  public role: "admin" | "user" | "moderator";
+  public role: "ADMIN" | "USER" | "MODERATOR";
   public isActive: boolean;
 
   constructor(data: Partial<IUser> = {}) {
     super(data);
     this.email = data.email || "";
     this.name = data.name || "";
-    this.role = data.role || "user";
+    this.role = data.role || "USER";
     this.isActive = data.isActive ?? true;
   }
 
@@ -54,7 +54,7 @@ export class User extends BaseModel implements IUser {
     return emailRegex.test(email);
   }
 
-  public setRole(role: "admin" | "user" | "moderator"): void {
+  public setRole(role: "ADMIN" | "USER" | "MODERATOR"): void {
     this.role = role;
     this.updateTimestamp();
   }

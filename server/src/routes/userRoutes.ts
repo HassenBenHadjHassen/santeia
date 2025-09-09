@@ -1,11 +1,11 @@
 // User routes
-import { Router } from "express";
+import { Router, Router as ExpressRouter } from "express";
 import { UserController } from "@/controllers/UserController";
 import { validateRequest, commonSchemas } from "@/middleware/validation";
 import { generalRateLimit, authRateLimit } from "@/middleware/security";
 import Joi from "joi";
 
-const router = Router();
+const router: ExpressRouter = Router();
 const userController = new UserController();
 
 // Apply rate limiting to all user routes

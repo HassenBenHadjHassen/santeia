@@ -1,10 +1,10 @@
 // LLM routes
-import { Router } from "express";
+import { Router, Router as ExpressRouter } from "express";
 import { LLMController } from "@/controllers/LLMController";
 import { generalRateLimit } from "@/middleware/security";
 import { validateRequest, commonSchemas } from "@/middleware/validation";
 
-const router = Router();
+const router: ExpressRouter = Router();
 const llmController = new LLMController();
 
 // Apply rate limiting to all LLM routes

@@ -1,10 +1,10 @@
 // Main routes index
-import { Router } from "express";
+import { Router, Router as ExpressRouter } from "express";
 import userRoutes from "./userRoutes";
 import llmRoutes from "./llmRoutes";
 import conversationRoutes from "./conversationRoutes";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Health check endpoint
 router.get("/health", (req, res) => {

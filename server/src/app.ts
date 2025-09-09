@@ -1,5 +1,5 @@
 // Express application setup
-import express from "express";
+import express, { Express } from "express";
 import compression from "compression";
 import morgan from "morgan";
 import { config } from "@/config/environment";
@@ -12,7 +12,7 @@ import {
 import { errorHandler, notFoundHandler } from "@/middleware/errorHandler";
 import routes from "@/routes";
 
-const app = express();
+const app: Express = express();
 
 // Trust proxy (for rate limiting behind reverse proxy)
 app.set("trust proxy", 1);
