@@ -2,180 +2,193 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseController } from "./BaseController";
 import { ConversationService } from "@/services/ConversationService";
+import { AuthRequest } from "@/middleware/auth";
 
 export class ConversationController extends BaseController {
-	private readonly conversationService: ConversationService;
+  private readonly conversationService: ConversationService;
 
-	constructor() {
-		super();
-		this.conversationService = new ConversationService();
-	}
+  constructor() {
+    super();
+    this.conversationService = new ConversationService();
+  }
 
-	public create = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		await this.handleRequest(req, res, next, async () => {
-			const requiredFields = ["title", "userId"];
-			const missingFields = this.validateRequired(req, requiredFields);
+  public create = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const requiredFields = ["title"];
+      const missingFields = this.validateRequired(req, requiredFields);
 
-			if (missingFields.length > 0) {
-				this.sendError(
-					res,
-					`Missing required fields: ${missingFields.join(", ")}`,
-					400
-				);
-				return;
-			}
+      if (missingFields.length > 0) {
+        this.sendError(
+          res,
+          `Missing required fields: ${missingFields.join(", ")}`,
+          400
+        );
+        return;
+      }
 
-			const conversationData = {
-				title: req.body.title,
-				userId: req.body.userId,
-			};
+      const userId = req.user?.userId;
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
 
-			const result = await this.conversationService.createConversation(
-				conversationData
-			);
-			this.sendServiceResponse(res, result, 201);
-		});
-	};
+      const conversationData = {
+        title: req.body.title,
+        userId: userId,
+      };
 
-	public findById = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		await this.handleRequest(req, res, next, async () => {
-			const { id } = req.params;
-			const userId = req.query.userId as string;
+      const result = await this.conversationService.createConversation(
+        conversationData
+      );
+      this.sendServiceResponse(res, result, 201);
+    });
+  };
 
-			if (!id) {
-				this.sendError(res, "Conversation ID is required", 400);
-				return;
-			}
+  public findById = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { id } = req.params;
+      const userId = req.user?.userId;
 
-			if (!userId) {
-				this.sendError(res, "User ID is required", 400);
-				return;
-			}
+      if (!id) {
+        this.sendError(res, "Conversation ID is required", 400);
+        return;
+      }
 
-			const result = await this.conversationService.getConversation(id, userId);
-			this.sendServiceResponse(res, result);
-		});
-	};
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
 
-	public findAll = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		await this.handleRequest(req, res, next, async () => {
-			const userId = req.query.userId as string;
-			const limit = parseInt(req.query.limit as string) || 20;
-			const offset = parseInt(req.query.offset as string) || 0;
+      const result = await this.conversationService.getConversation(id, userId);
+      this.sendServiceResponse(res, result);
+    });
+  };
 
-			if (!userId) {
-				this.sendError(res, "User ID is required", 400);
-				return;
-			}
+  public findAll = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const userId = req.user?.userId;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
 
-			const result = await this.conversationService.getUserConversations(
-				userId,
-				limit,
-				offset
-			);
-			this.sendServiceResponse(res, result);
-		});
-	};
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
 
-	public sendMessage = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		try {
-			await this.handleRequest(req, res, next, async () => {
-				const requiredFields = ["content", "conversationId", "userId"];
-				const missingFields = this.validateRequired(req, requiredFields);
+      const result = await this.conversationService.getUserConversations(
+        userId,
+        limit,
+        offset
+      );
+      this.sendServiceResponse(res, result);
+    });
+  };
 
-				if (missingFields.length > 0) {
-					this.sendError(
-						res,
-						`Missing required fields: ${missingFields.join(", ")}`,
-						400
-					);
-					return;
-				}
+  public sendMessage = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.handleRequest(req, res, next, async () => {
+        const requiredFields = ["content", "conversationId"];
+        const missingFields = this.validateRequired(req, requiredFields);
 
-				const messageData = {
-					content: req.body.content,
-					conversationId: req.body.conversationId,
-					userId: req.body.userId,
-				};
+        if (missingFields.length > 0) {
+          this.sendError(
+            res,
+            `Missing required fields: ${missingFields.join(", ")}`,
+            400
+          );
+          return;
+        }
 
-				const result = await this.conversationService.sendMessage(messageData);
-				this.sendServiceResponse(res, result);
-			});
-		} catch (error) {
-			console.error(error);
-		}
-	};
+        const userId = req.user?.userId;
+        if (!userId) {
+          this.sendError(res, "User ID is required", 400);
+          return;
+        }
 
-	public update = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		await this.handleRequest(req, res, next, async () => {
-			const { id } = req.params;
-			const userId = req.body.userId;
+        const messageData = {
+          content: req.body.content,
+          conversationId: req.body.conversationId,
+          userId: userId,
+        };
 
-			if (!id) {
-				this.sendError(res, "Conversation ID is required", 400);
-				return;
-			}
+        const result = await this.conversationService.sendMessage(messageData);
+        this.sendServiceResponse(res, result);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-			if (!userId) {
-				this.sendError(res, "User ID is required", 400);
-				return;
-			}
+  public update = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { id } = req.params;
+      const userId = req.user?.userId;
 
-			// For now, only allow updating the title
-			if (req.body.title) {
-				// This would require implementing updateConversation in the service
-				this.sendError(res, "Conversation update not implemented", 501);
-				return;
-			}
+      if (!id) {
+        this.sendError(res, "Conversation ID is required", 400);
+        return;
+      }
 
-			this.sendError(res, "No valid update data provided", 400);
-		});
-	};
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
 
-	public delete = async (
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<void> => {
-		await this.handleRequest(req, res, next, async () => {
-			const { id } = req.params;
-			const userId = req.query.userId as string;
+      // For now, only allow updating the title
+      if (req.body.title) {
+        // This would require implementing updateConversation in the service
+        this.sendError(res, "Conversation update not implemented", 501);
+        return;
+      }
 
-			if (!id) {
-				this.sendError(res, "Conversation ID is required", 400);
-				return;
-			}
+      this.sendError(res, "No valid update data provided", 400);
+    });
+  };
 
-			if (!userId) {
-				this.sendError(res, "User ID is required", 400);
-				return;
-			}
+  public delete = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { id } = req.params;
+      const userId = req.user?.userId;
 
-			const result = await this.conversationService.deleteConversation(
-				id,
-				userId
-			);
-			this.sendServiceResponse(res, result);
-		});
-	};
+      if (!id) {
+        this.sendError(res, "Conversation ID is required", 400);
+        return;
+      }
+
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
+
+      const result = await this.conversationService.deleteConversation(
+        id,
+        userId
+      );
+      this.sendServiceResponse(res, result);
+    });
+  };
 }

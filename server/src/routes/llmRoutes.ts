@@ -17,5 +17,7 @@ router.post(
   llmController.generateText
 );
 router.get("/model-info", llmController.getModelInfo);
+router.get("/usage-stats/:userId", llmController.getUsageStats);
+router.get("/recent-requests/:userId", llmController.getRecentRequests);
 
 export default router;

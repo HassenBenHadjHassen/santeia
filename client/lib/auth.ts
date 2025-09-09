@@ -1,35 +1,11 @@
 // Authentication service for client-side API calls
-const API_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://your-api-domain.com/api"
-    : "http://localhost:3001/api";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface SignupCredentials {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
+import {
+  userService,
+  type User,
+  type AuthResponse,
+  type LoginCredentials,
+  type SignupCredentials,
+} from "./api";
 
 class AuthService {
   private token: string | null = null;
@@ -84,50 +60,26 @@ class AuthService {
 
   // Login user
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/users/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Login failed");
+    try {
+      const response = await userService.login(credentials);
+      this.setToken(response.token);
+      this.setUser(response.user);
+      return response;
+    } catch (error) {
+      throw error;
     }
-
-    if (data.success) {
-      this.setToken(data.data.token);
-      this.setUser(data.data.user);
-    }
-
-    return data.data;
   }
 
   // Signup user
   async signup(credentials: SignupCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/users/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Signup failed");
+    try {
+      const response = await userService.signup(credentials);
+      this.setToken(response.token);
+      this.setUser(response.user);
+      return response;
+    } catch (error) {
+      throw error;
     }
-
-    if (data.success) {
-      this.setToken(data.data.token);
-      this.setUser(data.data.user);
-    }
-
-    return data.data;
   }
 
   // Logout user

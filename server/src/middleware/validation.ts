@@ -89,13 +89,11 @@ export const commonSchemas = {
   conversation: {
     create: Joi.object({
       title: Joi.string().min(1).max(100).required(),
-      userId: Joi.string().required(),
     }),
 
     sendMessage: Joi.object({
       content: Joi.string().min(1).max(4000).required(),
       conversationId: Joi.string().required(),
-      userId: Joi.string().required(),
     }),
   },
 

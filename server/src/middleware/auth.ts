@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { config } from "@/config/environment";
 import { ApiResponse } from "@/types";
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: {
     userId: string;
     email: string;
@@ -18,7 +18,7 @@ export const authenticateToken = (
   next: NextFunction
 ): void => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
     const response: ApiResponse = {
@@ -30,7 +30,41 @@ export const authenticateToken = (
     return;
   }
 
-  jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, config.JWT_SECRET, (err: any, decoded: any) => {
+    if (err) {
+      const response: ApiResponse = {
+        success: false,
+        error: "Invalid or expired token",
+        statusCode: 403,
+      };
+      res.status(403).json(response);
+      return;
+    }
+
+    req.user = decoded as { userId: string; email: string; role: string };
+    next();
+  });
+};
+
+export const requireAuth = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    const response: ApiResponse = {
+      success: false,
+      error: "Access token required",
+      statusCode: 401,
+    };
+    res.status(401).json(response);
+    return;
+  }
+
+  jwt.verify(token, config.JWT_SECRET, (err: any, decoded: any) => {
     if (err) {
       const response: ApiResponse = {
         success: false,

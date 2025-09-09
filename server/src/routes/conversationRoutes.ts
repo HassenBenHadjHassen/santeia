@@ -3,12 +3,16 @@ import { Router } from "express";
 import { ConversationController } from "@/controllers/ConversationController";
 import { generalRateLimit } from "@/middleware/security";
 import { validateRequest, commonSchemas } from "@/middleware/validation";
+import { requireAuth } from "@/middleware/auth";
 
 const router = Router();
 const conversationController = new ConversationController();
 
 // Apply rate limiting to all conversation routes
 router.use(generalRateLimit);
+
+// Apply authentication to all conversation routes
+router.use(requireAuth);
 
 // Conversation routes
 router.post(

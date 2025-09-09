@@ -55,6 +55,40 @@ export class LLMController extends BaseController {
     });
   };
 
+  public getUsageStats = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { userId } = req.params;
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
+      const result = await this.llmService.getUsageStats(userId);
+      this.sendServiceResponse(res, result);
+    });
+  };
+
+  public getRecentRequests = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { userId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
+      const result = await this.llmService.getRecentRequests(userId, limit);
+      this.sendServiceResponse(res, result);
+    });
+  };
+
   // Abstract methods from BaseController (not used in this controller)
   public create = async (
     req: Request,

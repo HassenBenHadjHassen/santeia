@@ -14,7 +14,7 @@ export abstract class BaseModel implements BaseEntity {
 
   // Generate a unique ID (you can replace this with your preferred ID generation)
   private generateId(): string {
-    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
   }
 
   // Abstract methods that must be implemented by subclasses

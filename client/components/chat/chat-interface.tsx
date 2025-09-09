@@ -22,12 +22,14 @@ interface ChatInterfaceProps {
   messages?: Message[];
   onSendMessage?: (message: string) => void;
   isLoading?: boolean;
+  userName?: string;
 }
 
 export function ChatInterface({
   messages = [],
   onSendMessage,
   isLoading = false,
+  userName = "You",
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -107,37 +109,57 @@ export function ChatInterface({
                 )}
               >
                 {message.role === "assistant" && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      <Bot className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="flex flex-col items-center space-y-1">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Bot className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">
+                      SantéAI
+                    </span>
+                  </div>
                 )}
 
-                <Card
-                  className={cn(
-                    "max-w-[80%] border-0",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-2xl"
-                      : "bg-accent rounded-2xl"
-                  )}
-                >
-                  <CardContent className="p-3">
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {message.content}
-                    </p>
-                    <p className="text-[10px] opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="flex flex-col max-w-[80%]">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {message.role === "user" ? userName : "SantéAI"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {message.timestamp instanceof Date &&
+                      !isNaN(message.timestamp.getTime())
+                        ? message.timestamp.toLocaleTimeString()
+                        : "Just now"}
+                    </span>
+                  </div>
+                  <Card
+                    className={cn(
+                      "border-0",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-2xl"
+                        : "bg-accent rounded-2xl"
+                    )}
+                  >
+                    <CardContent className="p-3">
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        {message.content}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
 
                 {message.role === "user" && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="flex flex-col items-center space-y-1">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">
+                      {userName}
+                    </span>
+                  </div>
                 )}
               </div>
             ))
@@ -145,26 +167,39 @@ export function ChatInterface({
 
           {isLoading && (
             <div className="flex items-start space-x-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>
-                  <Bot className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <Card className="bg-muted">
-                <CardContent className="p-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center space-y-1">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <Bot className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-muted-foreground">SantéAI</span>
+              </div>
+              <div className="flex flex-col max-w-[80%]">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    SantéAI
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    typing...
+                  </span>
+                </div>
+                <Card className="bg-accent rounded-2xl">
+                  <CardContent className="p-3">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </div>
