@@ -16,7 +16,7 @@ const startServer = async (): Promise<void> => {
     await db.connect();
 
     // Start HTTP server
-    app.listen(PORT, HOST, () => {
+    app.listen(PORT, () => {
       console.log(`🚀 Server running on ${HOST}`);
       console.log(`📊 Environment: ${config.NODE_ENV}`);
       console.log(`🔗 API Documentation: ${HOST}/api`);
