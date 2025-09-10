@@ -49,7 +49,7 @@ export class ConversationService {
     filters?: ConversationFilters,
     pagination?: PaginationParams,
     token?: string
-  ): Promise<PaginatedResponse<Conversation>> {
+  ): Promise<Conversation[]> {
     const params = new URLSearchParams();
 
     if (filters) {
@@ -71,10 +71,12 @@ export class ConversationService {
     const queryString = params.toString();
     const endpoint = `/conversations${queryString ? `?${queryString}` : ""}`;
 
-    const response = await this.apiClient.authenticatedRequest<
-      PaginatedResponse<Conversation>
-    >(endpoint, { method: "GET" }, token);
-    return response.data!;
+    const response = await this.apiClient.authenticatedRequest<Conversation[]>(
+      endpoint,
+      { method: "GET" },
+      token
+    );
+    return response.data || [];
   }
 
   async updateConversation(
@@ -121,12 +123,98 @@ export class ConversationService {
     return response.data!;
   }
 
+  async sendMessageStream(
+    conversationId: string,
+    content: string,
+    onChunk: (text: string) => void,
+    onMessage: (message: Message) => void,
+    onError: (error: string) => void,
+    onComplete: () => void,
+    token: string
+  ): Promise<void> {
+    if (!token) {
+      onError("No authentication token found");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${this.apiClient.getBaseURL()}/conversations/${conversationId}/messages/stream`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content, conversationId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body reader available");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              switch (data.type) {
+                case "ai_chunk":
+                  if (data.text) {
+                    onChunk(data.text);
+                  }
+                  break;
+                case "ai_message":
+                  if (data.message) {
+                    onMessage(data.message);
+                  }
+                  break;
+                case "user_message":
+                  if (data.message) {
+                    onMessage(data.message);
+                  }
+                  break;
+                case "error":
+                  onError(data.error || "Unknown error");
+                  break;
+                case "done":
+                  onComplete();
+                  return;
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      onError(error instanceof Error ? error.message : "Unknown error");
+    }
+  }
+
   // Get user's conversations
   async getUserConversations(
     userId: string,
     pagination?: PaginationParams,
     token?: string
-  ): Promise<PaginatedResponse<Conversation>> {
+  ): Promise<Conversation[]> {
     return this.getAllConversations({ userId }, pagination, token);
   }
 
@@ -135,7 +223,7 @@ export class ConversationService {
     searchTerm: string,
     pagination?: PaginationParams,
     token?: string
-  ): Promise<PaginatedResponse<Conversation>> {
+  ): Promise<Conversation[]> {
     return this.getAllConversations({ search: searchTerm }, pagination, token);
   }
 }

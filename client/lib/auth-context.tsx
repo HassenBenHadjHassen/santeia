@@ -1,6 +1,7 @@
 // Authentication context for managing user state
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "./auth";
+import { userService } from "./api";
 import type { User, LoginCredentials, SignupCredentials } from "./api/types";
 
 interface AuthContextType {
@@ -50,6 +51,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     initializeAuth();
   }, []);
+
+  // Auth checks: immediate on mount, on window focus, and periodic
+  useEffect(() => {
+    let interval: number | undefined;
+
+    const checkAuth = async () => {
+      try {
+        const token = authService.getToken();
+        if (!token) throw new Error("No token");
+        const me = await userService.me(token);
+        if (!me?.id) throw new Error("Invalid user");
+      } catch (err: any) {
+        authService.logout();
+        setUser(null);
+        setError(null);
+      }
+    };
+
+    // Run once when user exists
+    if (user) {
+      checkAuth();
+      // Shorter interval (30s)
+      interval = window.setInterval(checkAuth, 30000);
+      // On focus
+      const onFocus = () => checkAuth();
+      window.addEventListener("focus", onFocus);
+      return () => {
+        if (interval) window.clearInterval(interval);
+        window.removeEventListener("focus", onFocus);
+      };
+    }
+  }, [user]);
 
   const login = async (credentials: LoginCredentials) => {
     try {

@@ -5,6 +5,7 @@ import { UserService } from "@/services/UserService";
 import { User as IUser } from "@/types";
 import jwt from "jsonwebtoken";
 import { config } from "@/config/environment";
+import { AuthRequest } from "@/middleware/auth";
 
 export class UserController extends BaseController {
   private userService: UserService;
@@ -219,6 +220,26 @@ export class UserController extends BaseController {
         "User created successfully",
         201
       );
+    });
+  };
+
+  public me = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        this.sendError(res, "Authentication required", 401);
+        return;
+      }
+
+      const result = await this.userService.findById(req.user.userId);
+      if (!result.success) {
+        this.sendError(res, result.error || "User not found", 404);
+        return;
+      }
+      this.sendServiceResponse(res, result);
     });
   };
 }

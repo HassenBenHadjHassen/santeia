@@ -7,6 +7,11 @@ import { config } from "@/config/environment";
 
 // Rate limiting configuration
 export const createRateLimit = (windowMs: number, max: number) => {
+  // Disable rate limiting in non-production environments
+  if (config.NODE_ENV !== "production") {
+    return (req: Request, res: Response, next: NextFunction) => next();
+  }
+
   return rateLimit({
     windowMs,
     max,

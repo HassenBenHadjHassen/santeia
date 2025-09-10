@@ -27,6 +27,11 @@ router.post(
   validateRequest({ body: commonSchemas.conversation.sendMessage }),
   conversationController.sendMessage
 );
+router.post(
+  "/:id/messages/stream",
+  validateRequest({ body: commonSchemas.conversation.sendMessage }),
+  conversationController.sendMessageStream
+);
 router.put("/:id", conversationController.update);
 router.delete("/:id", conversationController.delete);
 

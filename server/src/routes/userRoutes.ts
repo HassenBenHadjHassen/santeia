@@ -3,6 +3,7 @@ import { Router, Router as ExpressRouter } from "express";
 import { UserController } from "@/controllers/UserController";
 import { validateRequest, commonSchemas } from "@/middleware/validation";
 import { generalRateLimit, authRateLimit } from "@/middleware/security";
+import { requireAuth } from "@/middleware/auth";
 import Joi from "joi";
 
 const router: ExpressRouter = Router();
@@ -39,6 +40,9 @@ router.post(
 );
 
 // User routes
+// Authenticated: get current user profile (place before parameterized routes)
+router.get("/me", requireAuth, userController.me);
+
 router.post(
   "/",
   validateRequest({ body: commonSchemas.user.create }),

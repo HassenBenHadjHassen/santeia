@@ -193,6 +193,127 @@ export class ConversationService {
     }
   }
 
+  public async sendMessageStream(
+    data: SendMessageRequest,
+    res: any
+  ): Promise<void> {
+    try {
+      // Get the conversation
+      const conversation = await this.conversationRepository.findByUserAndId(
+        data.conversationId,
+        data.userId
+      );
+
+      if (!conversation) {
+        res.status(404).json({
+          success: false,
+          error: "Conversation not found",
+          statusCode: 404,
+        });
+        return;
+      }
+
+      // Create user message
+      const userMessage = await this.conversationRepository.createMessage({
+        content: data.content,
+        role: "USER",
+        conversationId: data.conversationId,
+        userId: data.userId,
+      });
+
+      // Send user message info to client
+      res.write(
+        `data: ${JSON.stringify({
+          type: "user_message",
+          message: {
+            id: userMessage.id,
+            content: userMessage.content,
+            role: userMessage.role,
+            timestamp: userMessage.createdAt,
+          },
+        })}\n\n`
+      );
+
+      // Prepare messages for LLM
+      const messages = conversation.messages.map((msg) => ({
+        role: msg.role.toLowerCase() as "user" | "assistant" | "system",
+        content: msg.content,
+      }));
+
+      // Add the new user message
+      messages.push({
+        role: "user",
+        content: data.content,
+      });
+
+      // Stream AI response
+      let fullResponse = "";
+      let hasStreamed = false;
+
+      for await (const chunk of this.llmService.generateConversationResponseStream(
+        messages,
+        data.userId,
+        data.conversationId
+      )) {
+        if (chunk.text) {
+          fullResponse += chunk.text;
+          hasStreamed = true;
+          res.write(
+            `data: ${JSON.stringify({
+              type: "ai_chunk",
+              text: chunk.text,
+              done: chunk.done,
+            })}\n\n`
+          );
+        }
+
+        if (chunk.done) {
+          // Create assistant message
+          const assistantMessage =
+            await this.conversationRepository.createMessage({
+              content: fullResponse,
+              role: "ASSISTANT",
+              conversationId: data.conversationId,
+              userId: data.userId,
+            });
+
+          // Update conversation timestamp
+          await this.conversationRepository.updateConversationTimestamp(
+            data.conversationId
+          );
+
+          // Only send final message if we didn't stream anything (fallback)
+          if (!hasStreamed) {
+            res.write(
+              `data: ${JSON.stringify({
+                type: "ai_message",
+                message: {
+                  id: assistantMessage.id,
+                  content: assistantMessage.content,
+                  role: assistantMessage.role,
+                  timestamp: assistantMessage.createdAt,
+                },
+              })}\n\n`
+            );
+          }
+
+          res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
+          res.end();
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Streaming error:", error);
+      res.write(
+        `data: ${JSON.stringify({
+          type: "error",
+          error: "Failed to generate response",
+        })}\n\n`
+      );
+      res.end();
+    }
+  }
+
   public async deleteConversation(
     id: string,
     userId: string
@@ -205,9 +326,11 @@ export class ConversationService {
       );
 
       if (!conversation) {
+        // Idempotent delete: treat as success if it's already gone
         return {
-          success: false,
-          error: "Conversation not found",
+          success: true,
+          data: true,
+          message: "Conversation already deleted",
         };
       }
 

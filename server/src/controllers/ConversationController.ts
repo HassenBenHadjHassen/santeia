@@ -135,6 +135,55 @@ export class ConversationController extends BaseController {
     }
   };
 
+  public sendMessageStream = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const requiredFields = ["content", "conversationId"];
+      const missingFields = this.validateRequired(req, requiredFields);
+
+      if (missingFields.length > 0) {
+        this.sendError(
+          res,
+          `Missing required fields: ${missingFields.join(", ")}`,
+          400
+        );
+        return;
+      }
+
+      const userId = req.user?.userId;
+      if (!userId) {
+        this.sendError(res, "User ID is required", 400);
+        return;
+      }
+
+      // Set headers for streaming
+      res.setHeader("Content-Type", "text/plain");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const messageData = {
+        content: req.body.content,
+        conversationId: req.body.conversationId,
+        userId: userId,
+      };
+
+      const result = await this.conversationService.sendMessageStream(
+        messageData,
+        res
+      );
+    } catch (error) {
+      console.error("Streaming error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Streaming failed",
+        statusCode: 500,
+      });
+    }
+  };
+
   public update = async (
     req: AuthRequest,
     res: Response,

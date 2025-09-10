@@ -48,7 +48,7 @@ export class LLMService {
           {
             role: "system",
             content:
-              "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your role is to support users in managing blood sugar levels, meals, activity, and medication by providing educational and personalized guidance without ever diagnosing, prescribing, or replacing medical professionals. Always include a disclaimer advising users to consult a healthcare professional when needed. If a user mentions urgent symptoms (chest pain, fainting, severe headache, shortness of breath, vision loss, etc.), immediately recommend seeking emergency care. Start each conversation with a warm, respectful greeting without assuming symptoms. Be empathetic, concise (2–3 sentences), and ask only essential questions needed for safety. Respond based on available user history when relevant, offer helpful alerts and reminders (such as blood sugar checks or post-meal tips), and always prioritize safety and clarity in every reply. Never use em dashes (—) in your responses.",
+              "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.",
           },
           { role: "user", content: request.prompt },
         ],
@@ -113,7 +113,7 @@ export class LLMService {
               {
                 role: "system" as const,
                 content:
-                  "You are a helpful AI assistant for SanteIA, a health-focused application. Provide accurate, helpful, and empathetic responses.",
+                  "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support..",
               },
               ...messages,
             ];
@@ -166,6 +166,74 @@ export class LLMService {
         success: false,
         error: `Failed to generate conversation response: ${error}`,
       };
+    }
+  }
+
+  public async *generateConversationResponseStream(
+    messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
+    userId: string,
+    conversationId?: string
+  ): AsyncGenerator<{ text: string; done: boolean }, void, unknown> {
+    try {
+      const startTime = Date.now();
+
+      // Ensure we have a system message
+      const formattedMessages =
+        messages.length > 0 && messages[0].role === "system"
+          ? messages
+          : [
+              {
+                role: "system" as const,
+                content:
+                  "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support..",
+              },
+              ...messages,
+            ];
+
+      // Call OpenAI-compatible chat completions with streaming
+      const stream = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: formattedMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        temperature: 0.7,
+        top_p: 0.9,
+        max_tokens: 256,
+        stream: true,
+      });
+
+      let fullText = "";
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) {
+          fullText += content;
+          yield { text: content, done: false };
+        }
+      }
+
+      // Log the complete request to database
+      const duration = Date.now() - startTime;
+      const tokens = Math.ceil(fullText.length / 4);
+      const cost = this.calculateCost(tokens);
+
+      const promptText = formattedMessages
+        .map((msg) => `${msg.role}: ${msg.content}`)
+        .join("\n");
+      await this.llmRepository.create({
+        model: this.model,
+        prompt: promptText,
+        response: fullText,
+        tokens,
+        cost,
+        duration,
+        userId,
+      });
+
+      yield { text: "", done: true };
+    } catch (error) {
+      console.error("LLM streaming error:", error);
+      throw error;
     }
   }
 

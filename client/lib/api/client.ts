@@ -16,6 +16,10 @@ export class ApiClient {
     };
   }
 
+  getBaseURL(): string {
+    return this.baseURL;
+  }
+
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit & RequestConfig = {}

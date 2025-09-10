@@ -1,20 +1,29 @@
 "use client";
 
 import { cn } from "lib/utils";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "components/ui/button";
 import { ScrollArea } from "components/ui/scroll-area";
-import { Link, useLocation } from "react-router";
 
 interface SidebarProps {
   className?: string;
+  conversations: Array<{ id: string; title: string; updatedAt?: string }>;
+  activeId?: string | null;
+  onSelect: (conversationId: string) => void;
+  onNew: () => void;
+  isLoading?: boolean;
+  onDelete?: (conversationId: string) => void;
 }
 
-const navigation = [{ name: "New Chat", to: "/", icon: Plus }];
-
-export function Sidebar({ className }: SidebarProps) {
-  const pathname = useLocation();
-
+export function Sidebar({
+  className,
+  conversations,
+  activeId,
+  onSelect,
+  onNew,
+  isLoading,
+  onDelete,
+}: SidebarProps) {
   return (
     <div className={cn("pb-12", className)}>
       <div className="space-y-4 py-4">
@@ -31,35 +40,57 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
 
         <div className="px-3">
-          <Button asChild className="w-full justify-start rounded-full">
-            <Link to="/">
-              <Plus className="mr-2 h-4 w-4" />
-              Start New Chat
-            </Link>
+          <Button onClick={onNew} className="w-full justify-start rounded-full">
+            <Plus className="mr-2 h-4 w-4" />
+            Start New Chat
           </Button>
         </div>
 
+        <div className="px-3 pt-2 text-xs text-muted-foreground">
+          Recent conversations
+        </div>
         <ScrollArea className="px-3">
-          <div className="space-y-1">
-            {navigation.map((item) => {
-              const isActive = pathname.pathname === item.to;
-              return (
-                <Button
-                  key={item.name}
-                  variant={isActive ? "secondary" : "ghost"}
+          <div className="space-y-1 py-1">
+            {isLoading ? (
+              <div className="text-xs text-muted-foreground p-2">Loading…</div>
+            ) : conversations.length === 0 ? (
+              <div className="text-xs text-muted-foreground p-2">
+                No conversations yet
+              </div>
+            ) : (
+              conversations.map((c) => (
+                <div
+                  key={c.id}
                   className={cn(
-                    "w-full justify-start rounded-xl",
-                    isActive && "bg-secondary border border-border/60"
+                    "w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent",
+                    c.id === activeId && "bg-secondary border border-border/60"
                   )}
-                  asChild
+                  onClick={() => {
+                    if (c.id !== activeId) onSelect(c.id);
+                  }}
                 >
-                  <Link to={item.to}>
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.name}
-                  </Link>
-                </Button>
-              );
-            })}
+                  <div className="flex items-center gap-2 min-w-0 pr-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span className="truncate">
+                      {c.title || "Untitled conversation"}
+                    </span>
+                  </div>
+                  {onDelete && (
+                    <button
+                      type="button"
+                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(c.id);
+                      }}
+                      aria-label="Delete conversation"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </ScrollArea>
       </div>

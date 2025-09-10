@@ -34,6 +34,16 @@ export class UserService {
     return response.data!;
   }
 
+  // Authenticated: get current user profile
+  async me(token: string): Promise<User> {
+    const response = await this.apiClient.authenticatedRequest<User>(
+      "/users/me",
+      { method: "GET" },
+      token
+    );
+    return response.data!;
+  }
+
   // User CRUD operations
   async createUser(userData: Partial<User>): Promise<User> {
     const response = await this.apiClient.post<User>("/users", userData);
