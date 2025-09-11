@@ -1,9 +1,10 @@
 // User repository for user database operations
-import { User, Prisma } from "@prisma/client";
+import { User as PrismaUser, Prisma } from "@prisma/client";
+import { User } from "@/types";
 import { BaseRepository } from "./BaseRepository";
 import bcrypt from "bcryptjs";
 
-export class UserRepository extends BaseRepository<User> {
+export class UserRepository extends BaseRepository<PrismaUser> {
   public async create(data: Partial<User>): Promise<User> {
     return this.handleDatabaseOperation(async () => {
       // Hash password if provided
@@ -12,31 +13,42 @@ export class UserRepository extends BaseRepository<User> {
         hashedPassword = await bcrypt.hash(data.password, 12);
       }
 
-      return await this.prisma.user.create({
+      const prismaUser = await this.prisma.user.create({
         data: {
           email: data.email!,
           name: data.name!,
           role: data.role || "USER",
           isActive: data.isActive ?? true,
           password: hashedPassword,
+          diabetesType: data.diabetesType,
+          diagnosisDate: data.diagnosisDate,
+          currentMedications: data.currentMedications,
+          bloodSugarTargets: data.bloodSugarTargets,
+          activityLevel: data.activityLevel,
+          dietaryPreferences: data.dietaryPreferences,
+          emergencyContact: data.emergencyContact,
         },
       });
+
+      return prismaUser as User;
     });
   }
 
   public async findById(id: string): Promise<User | null> {
     return this.handleDatabaseOperation(async () => {
-      return await this.prisma.user.findUnique({
+      const prismaUser = await this.prisma.user.findUnique({
         where: { id },
       });
+      return prismaUser as User | null;
     });
   }
 
   public async findByEmail(email: string): Promise<User | null> {
     return this.handleDatabaseOperation(async () => {
-      return await this.prisma.user.findUnique({
+      const prismaUser = await this.prisma.user.findUnique({
         where: { email },
       });
+      return prismaUser as User | null;
     });
   }
 
@@ -44,10 +56,11 @@ export class UserRepository extends BaseRepository<User> {
     return this.handleDatabaseOperation(async () => {
       const where = filters ? this.buildWhereClause(filters) : {};
 
-      return await this.prisma.user.findMany({
+      const prismaUsers = await this.prisma.user.findMany({
         where,
         orderBy: { createdAt: "desc" },
       });
+      return prismaUsers as User[];
     });
   }
 
@@ -59,10 +72,11 @@ export class UserRepository extends BaseRepository<User> {
         updateData.password = await bcrypt.hash(data.password, 12);
       }
 
-      return await this.prisma.user.update({
+      const prismaUser = await this.prisma.user.update({
         where: { id },
         data: updateData,
       });
+      return prismaUser as User;
     });
   }
 
@@ -115,7 +129,7 @@ export class UserRepository extends BaseRepository<User> {
       const where = filters ? this.buildWhereClause(filters) : {};
       const pagination = this.buildPaginationOptions(page, limit);
 
-      const [users, total] = await Promise.all([
+      const [prismaUsers, total] = await Promise.all([
         this.prisma.user.findMany({
           where,
           ...pagination,
@@ -124,7 +138,7 @@ export class UserRepository extends BaseRepository<User> {
         this.prisma.user.count({ where }),
       ]);
 
-      return { users, total };
+      return { users: prismaUsers as User[], total };
     });
   }
 

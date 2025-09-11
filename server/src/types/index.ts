@@ -35,24 +35,24 @@ export interface User extends BaseEntity {
   name: string;
   role: "ADMIN" | "USER" | "MODERATOR";
   isActive: boolean;
-  password?: string;
+  password: string | null;
   // Onboarding data
-  diabetesType?: string;
-  diagnosisDate?: string;
-  currentMedications?: string[];
-  bloodSugarTargets?: {
+  diabetesType: string | null;
+  diagnosisDate: string | null;
+  currentMedications: string[];
+  bloodSugarTargets: {
     fasting: string;
     beforeMeals: string;
     afterMeals: string;
     bedtime: string;
-  };
-  activityLevel?: string;
-  dietaryPreferences?: string[];
-  emergencyContact?: {
+  } | null;
+  activityLevel: string | null;
+  dietaryPreferences: string[];
+  emergencyContact: {
     name: string;
     phone: string;
     relationship: string;
-  };
+  } | null;
 }
 
 export interface ValidationError {
