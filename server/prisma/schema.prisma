@@ -20,6 +20,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Onboarding data
+  diabetesType        String?
+  diagnosisDate       String?
+  currentMedications  String[]
+  bloodSugarTargets   Json?
+  activityLevel       String?
+  dietaryPreferences  String[]
+  emergencyContact    Json?
+
   // Relations
   conversations Conversation[]
   messages      Message[]

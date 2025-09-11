@@ -45,7 +45,10 @@ export class ConversationService {
 
       // Get the conversation with messages
       const conversationWithMessages =
-        await this.conversationRepository.findByIdWithMessages(conversation.id);
+        await this.conversationRepository.findByIdWithMessages(
+          conversation.id,
+          data.userId
+        );
 
       return {
         success: true,
@@ -117,6 +120,14 @@ export class ConversationService {
     data: SendMessageRequest
   ): Promise<ServiceResponse<{ message: any; response: any }>> {
     try {
+      // Validate userId
+      if (!data.userId || data.userId.trim() === "") {
+        return {
+          success: false,
+          error: "Invalid user ID",
+        };
+      }
+
       // Get the conversation
       const conversation = await this.conversationRepository.findByUserAndId(
         data.conversationId,
@@ -177,6 +188,36 @@ export class ConversationService {
         data.conversationId
       );
 
+      // Auto-generate title if conversation has enough messages and still has default title
+      const updatedConversation =
+        await this.conversationRepository.findByUserAndId(
+          data.conversationId,
+          data.userId
+        );
+
+      if (
+        updatedConversation &&
+        updatedConversation.messages.length >= 4 &&
+        (updatedConversation.title === "New Chat" ||
+          updatedConversation.title === "Untitled conversation")
+      ) {
+        // Generate title asynchronously (don't wait for it)
+        this.generateAndUpdateTitle(data.conversationId, data.userId)
+          .then((titleResult) => {
+            if (titleResult.success) {
+              console.log(
+                `Auto-generated title for conversation ${data.conversationId}: ${titleResult.data?.title}`
+              );
+            }
+          })
+          .catch((error) => {
+            console.error(
+              `Failed to auto-generate title for conversation ${data.conversationId}:`,
+              error
+            );
+          });
+      }
+
       return {
         success: true,
         data: {
@@ -198,6 +239,16 @@ export class ConversationService {
     res: any
   ): Promise<void> {
     try {
+      // Validate userId
+      if (!data.userId || data.userId.trim() === "") {
+        res.status(400).json({
+          success: false,
+          error: "Invalid user ID",
+          statusCode: 400,
+        });
+        return;
+      }
+
       // Get the conversation
       const conversation = await this.conversationRepository.findByUserAndId(
         data.conversationId,
@@ -297,6 +348,36 @@ export class ConversationService {
             );
           }
 
+          // Auto-generate title if conversation has enough messages and still has default title
+          const updatedConversation =
+            await this.conversationRepository.findByUserAndId(
+              data.conversationId,
+              data.userId
+            );
+
+          if (
+            updatedConversation &&
+            updatedConversation.messages.length >= 4 &&
+            (updatedConversation.title === "New Chat" ||
+              updatedConversation.title === "Untitled conversation")
+          ) {
+            // Generate title asynchronously (don't wait for it)
+            this.generateAndUpdateTitle(data.conversationId, data.userId)
+              .then((titleResult) => {
+                if (titleResult.success) {
+                  console.log(
+                    `Auto-generated title for conversation ${data.conversationId}: ${titleResult.data?.title}`
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  `Failed to auto-generate title for conversation ${data.conversationId}:`,
+                  error
+                );
+              });
+          }
+
           res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
           res.end();
           break;
@@ -311,6 +392,80 @@ export class ConversationService {
         })}\n\n`
       );
       res.end();
+    }
+  }
+
+  public async generateAndUpdateTitle(
+    conversationId: string,
+    userId: string
+  ): Promise<ServiceResponse<{ title: string }>> {
+    try {
+      // Get the conversation with messages
+      const conversation = await this.conversationRepository.findByUserAndId(
+        conversationId,
+        userId
+      );
+
+      if (!conversation) {
+        return {
+          success: false,
+          error: "Conversation not found",
+        };
+      }
+
+      // Only generate title if conversation has enough messages (2+ exchanges)
+      if (conversation.messages.length < 2) {
+        return {
+          success: false,
+          error: "Not enough messages to generate title",
+        };
+      }
+
+      // Prepare messages for title generation
+      const messages = conversation.messages.map((msg) => ({
+        role: msg.role.toLowerCase() as "user" | "assistant" | "system",
+        content: msg.content,
+      }));
+
+      // Generate title using LLM service
+      const titleResult = await this.llmService.generateConversationTitle(
+        messages,
+        userId
+      );
+
+      if (!titleResult.success) {
+        return {
+          success: false,
+          error: titleResult.error || "Failed to generate title",
+        };
+      }
+
+      const newTitle = titleResult.data!;
+
+      // Update conversation title
+      const updatedConversation = await this.conversationRepository.update(
+        conversationId,
+        { title: newTitle },
+        userId
+      );
+
+      if (!updatedConversation) {
+        return {
+          success: false,
+          error: "Failed to update conversation title",
+        };
+      }
+
+      return {
+        success: true,
+        data: { title: newTitle },
+        message: "Conversation title updated successfully",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to generate and update title: ${error}`,
+      };
     }
   }
 
@@ -335,7 +490,7 @@ export class ConversationService {
       }
 
       // Delete conversation (messages will be deleted due to cascade)
-      await this.conversationRepository.delete(id);
+      await this.conversationRepository.delete(id, userId);
 
       return {
         success: true,

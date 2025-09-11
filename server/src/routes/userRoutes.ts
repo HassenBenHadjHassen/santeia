@@ -43,6 +43,27 @@ router.post(
 // Authenticated: get current user profile (place before parameterized routes)
 router.get("/me", requireAuth, userController.me);
 
+// Update current user profile
+router.put(
+  "/me",
+  requireAuth,
+  validateRequest({
+    body: Joi.object({
+      name: Joi.string().min(2).max(50).optional(),
+      email: Joi.string().email().optional(),
+    }),
+  }),
+  userController.updateProfile
+);
+
+// Save onboarding data
+router.post(
+  "/onboarding",
+  requireAuth,
+  validateRequest({ body: commonSchemas.onboarding.save }),
+  userController.saveOnboarding
+);
+
 router.post(
   "/",
   validateRequest({ body: commonSchemas.user.create }),

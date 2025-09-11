@@ -18,8 +18,19 @@ export class ConversationRepository extends BaseRepository<Conversation> {
     });
   }
 
-  public async findById(id: string): Promise<Conversation | null> {
+  public async findById(
+    id: string,
+    userId?: string
+  ): Promise<Conversation | null> {
     return this.handleDatabaseOperation(async () => {
+      if (userId) {
+        return await this.prisma.conversation.findFirst({
+          where: {
+            id,
+            userId,
+          },
+        });
+      }
       return await this.prisma.conversation.findUnique({
         where: { id },
       });
@@ -27,9 +38,23 @@ export class ConversationRepository extends BaseRepository<Conversation> {
   }
 
   public async findByIdWithMessages(
-    id: string
+    id: string,
+    userId?: string
   ): Promise<ConversationWithMessages | null> {
     return this.handleDatabaseOperation(async () => {
+      if (userId) {
+        return await this.prisma.conversation.findFirst({
+          where: {
+            id,
+            userId,
+          },
+          include: {
+            messages: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        });
+      }
       return await this.prisma.conversation.findUnique({
         where: { id },
         include: {
@@ -94,9 +119,20 @@ export class ConversationRepository extends BaseRepository<Conversation> {
 
   public async update(
     id: string,
-    data: Partial<Conversation>
+    data: Partial<Conversation>,
+    userId?: string
   ): Promise<Conversation> {
     return this.handleDatabaseOperation(async () => {
+      if (userId) {
+        // Verify ownership before updating
+        const conversation = await this.prisma.conversation.findFirst({
+          where: { id, userId },
+        });
+        if (!conversation) {
+          throw new Error("Conversation not found or access denied");
+        }
+      }
+
       return await this.prisma.conversation.update({
         where: { id },
         data: {
@@ -107,8 +143,18 @@ export class ConversationRepository extends BaseRepository<Conversation> {
     });
   }
 
-  public async delete(id: string): Promise<boolean> {
+  public async delete(id: string, userId?: string): Promise<boolean> {
     return this.handleDatabaseOperation(async () => {
+      if (userId) {
+        // Verify ownership before deleting
+        const conversation = await this.prisma.conversation.findFirst({
+          where: { id, userId },
+        });
+        if (!conversation) {
+          throw new Error("Conversation not found or access denied");
+        }
+      }
+
       await this.prisma.conversation.delete({
         where: { id },
       });
@@ -136,12 +182,28 @@ export class ConversationRepository extends BaseRepository<Conversation> {
 
   public async getMessagesByConversationId(
     conversationId: string,
+    userId: string,
     limit?: number,
     offset?: number
   ): Promise<Message[]> {
     return this.handleDatabaseOperation(async () => {
+      // First verify the conversation belongs to the user
+      const conversation = await this.prisma.conversation.findFirst({
+        where: {
+          id: conversationId,
+          userId,
+        },
+      });
+
+      if (!conversation) {
+        throw new Error("Conversation not found or access denied");
+      }
+
       return await this.prisma.message.findMany({
-        where: { conversationId },
+        where: {
+          conversationId,
+          userId, // Also filter messages by user for extra security
+        },
         orderBy: { createdAt: "asc" },
         ...(limit && { take: limit }),
         ...(offset && { skip: offset }),

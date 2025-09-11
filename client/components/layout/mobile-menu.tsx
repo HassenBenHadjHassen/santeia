@@ -2,32 +2,69 @@
 
 import { useState } from "react";
 import { Button } from "components/ui/button";
-import { Heart, Menu, X, Plus } from "lucide-react";
+import {
+  Heart,
+  Menu,
+  X,
+  Plus,
+  MessageSquare,
+  Trash2,
+  User,
+} from "lucide-react";
 import { Link } from "react-router";
 
-export function MobileMenu() {
+interface MobileMenuProps {
+  conversations?: Array<{ id: string; title: string; updatedAt?: string }>;
+  activeId?: string | null;
+  onSelect?: (conversationId: string) => void;
+  onNew?: () => void;
+  onDelete?: (conversationId: string) => void;
+  isLoading?: boolean;
+}
+
+export function MobileMenu({
+  conversations = [],
+  activeId,
+  onSelect,
+  onNew,
+  onDelete,
+  isLoading,
+}: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navigation = [{ name: "New Chat", to: "/", icon: Plus }];
+  const handleSelect = (conversationId: string) => {
+    onSelect?.(conversationId);
+    setIsOpen(false);
+  };
+
+  const handleNew = () => {
+    onNew?.();
+    setIsOpen(false);
+  };
+
+  const handleDelete = (conversationId: string) => {
+    onDelete?.(conversationId);
+    setIsOpen(false);
+  };
 
   return (
     <>
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden"
+        className="lg:hidden"
         onClick={() => setIsOpen(true)}
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-5 w-5" />
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="fixed inset-0 bg-black/50"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-64 bg-background border-r">
+          <div className="fixed inset-y-0 left-0 w-72 sm:w-80 bg-background border-r shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center space-x-2">
                 <Heart className="h-6 w-6 text-primary" />
@@ -42,28 +79,81 @@ export function MobileMenu() {
               </Button>
             </div>
 
-            <nav className="p-4 space-y-2">
-              <Button asChild className="w-full justify-start">
-                <Link to="/" onClick={() => setIsOpen(false)}>
+            <div className="flex flex-col h-full">
+              {/* New Chat Button */}
+              <div className="p-3 border-b">
+                <Button
+                  onClick={handleNew}
+                  className="w-full justify-start rounded-full"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Start New Chat
-                </Link>
-              </Button>
+                </Button>
+              </div>
 
-              {navigation.map((item) => (
+              {/* Conversations List */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-3 py-2 text-xs text-muted-foreground">
+                  Recent conversations
+                </div>
+                <div className="px-3 space-y-1">
+                  {isLoading ? (
+                    <div className="text-xs text-muted-foreground p-2">
+                      Loading…
+                    </div>
+                  ) : conversations.length === 0 ? (
+                    <div className="text-xs text-muted-foreground p-2">
+                      No conversations yet
+                    </div>
+                  ) : (
+                    conversations.map((c) => (
+                      <div
+                        key={c.id}
+                        className={`w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent ${
+                          c.id === activeId &&
+                          "bg-secondary border border-border/60"
+                        }`}
+                        onClick={() => handleSelect(c.id)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 pr-2">
+                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate text-sm">
+                            {c.title || "Untitled conversation"}
+                          </span>
+                        </div>
+                        {onDelete && (
+                          <button
+                            type="button"
+                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(c.id);
+                            }}
+                            aria-label="Delete conversation"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Profile Link */}
+              <div className="p-3 border-t">
                 <Button
-                  key={item.name}
-                  variant="ghost"
-                  className="w-full justify-start"
                   asChild
+                  variant="outline"
+                  className="w-full justify-start rounded-full"
                 >
-                  <Link to={item.to} onClick={() => setIsOpen(false)}>
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.name}
+                  <Link to="/profile" onClick={() => setIsOpen(false)}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
                   </Link>
                 </Button>
-              ))}
-            </nav>
+              </div>
+            </div>
           </div>
         </div>
       )}

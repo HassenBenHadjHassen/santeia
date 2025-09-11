@@ -108,4 +108,31 @@ export const commonSchemas = {
       repetitionPenalty: Joi.number().min(0).max(2).optional(),
     }),
   },
+
+  onboarding: {
+    save: Joi.object({
+      onboardingData: Joi.object({
+        diabetesType: Joi.string()
+          .valid("type1", "type2", "gestational", "prediabetes", "other")
+          .required(),
+        diagnosisDate: Joi.string().optional().allow(""),
+        currentMedications: Joi.array().items(Joi.string()).default([]),
+        bloodSugarTargets: Joi.object({
+          fasting: Joi.string().optional().allow(""),
+          beforeMeals: Joi.string().optional().allow(""),
+          afterMeals: Joi.string().optional().allow(""),
+          bedtime: Joi.string().optional().allow(""),
+        }).required(),
+        activityLevel: Joi.string()
+          .valid("sedentary", "light", "moderate", "active", "very-active")
+          .required(),
+        dietaryPreferences: Joi.array().items(Joi.string()).default([]),
+        emergencyContact: Joi.object({
+          name: Joi.string().optional().allow(""),
+          phone: Joi.string().optional().allow(""),
+          relationship: Joi.string().optional().allow(""),
+        }).required(),
+      }).required(),
+    }),
+  },
 };

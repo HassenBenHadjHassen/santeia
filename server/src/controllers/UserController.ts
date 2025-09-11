@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseController } from "./BaseController";
 import { UserService } from "@/services/UserService";
-import { User as IUser } from "@/types";
+import { User as IUser, OnboardingData } from "@/types";
 import jwt from "jsonwebtoken";
 import { config } from "@/config/environment";
 import { AuthRequest } from "@/middleware/auth";
@@ -239,6 +239,75 @@ export class UserController extends BaseController {
         this.sendError(res, result.error || "User not found", 404);
         return;
       }
+      this.sendServiceResponse(res, result);
+    });
+  };
+
+  public updateProfile = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        this.sendError(res, "Authentication required", 401);
+        return;
+      }
+
+      const { name, email } = req.body;
+
+      const updateData: Partial<IUser> = {};
+      if (name) updateData.name = name;
+      if (email) updateData.email = email;
+
+      if (Object.keys(updateData).length === 0) {
+        this.sendError(res, "No valid fields to update", 400);
+        return;
+      }
+
+      const result = await this.userService.update(req.user.userId, updateData);
+
+      if (!result.success) {
+        this.sendError(res, result.error || "Failed to update profile", 400);
+        return;
+      }
+
+      this.sendServiceResponse(res, result);
+    });
+  };
+
+  public saveOnboarding = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        this.sendError(res, "Authentication required", 401);
+        return;
+      }
+
+      const { onboardingData } = req.body;
+
+      if (!onboardingData) {
+        this.sendError(res, "Onboarding data is required", 400);
+        return;
+      }
+
+      const result = await this.userService.saveOnboarding(
+        req.user.userId,
+        onboardingData as OnboardingData
+      );
+
+      if (!result.success) {
+        this.sendError(
+          res,
+          result.error || "Failed to save onboarding data",
+          400
+        );
+        return;
+      }
+
       this.sendServiceResponse(res, result);
     });
   };

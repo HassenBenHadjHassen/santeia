@@ -214,6 +214,37 @@ export class ConversationController extends BaseController {
     });
   };
 
+  public generateTitle = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        this.sendError(res, "Authentication required", 401);
+        return;
+      }
+
+      const { conversationId } = req.params;
+      if (!conversationId) {
+        this.sendError(res, "Conversation ID is required", 400);
+        return;
+      }
+
+      const result = await this.conversationService.generateAndUpdateTitle(
+        conversationId,
+        req.user.userId
+      );
+
+      if (!result.success) {
+        this.sendError(res, result.error || "Failed to generate title", 400);
+        return;
+      }
+
+      this.sendServiceResponse(res, result);
+    });
+  };
+
   public delete = async (
     req: AuthRequest,
     res: Response,

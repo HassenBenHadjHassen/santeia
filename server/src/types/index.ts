@@ -36,6 +36,23 @@ export interface User extends BaseEntity {
   role: "ADMIN" | "USER" | "MODERATOR";
   isActive: boolean;
   password?: string;
+  // Onboarding data
+  diabetesType?: string;
+  diagnosisDate?: string;
+  currentMedications?: string[];
+  bloodSugarTargets?: {
+    fasting: string;
+    beforeMeals: string;
+    afterMeals: string;
+    bedtime: string;
+  };
+  activityLevel?: string;
+  dietaryPreferences?: string[];
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
 }
 
 export interface ValidationError {
@@ -73,4 +90,23 @@ export interface LLMRequest extends BaseEntity {
   cost?: number;
   duration?: number;
   userId: string;
+}
+
+export interface OnboardingData {
+  diabetesType: string;
+  diagnosisDate: string;
+  currentMedications: string[];
+  bloodSugarTargets: {
+    fasting: string;
+    beforeMeals: string;
+    afterMeals: string;
+    bedtime: string;
+  };
+  activityLevel: string;
+  dietaryPreferences: string[];
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
 }

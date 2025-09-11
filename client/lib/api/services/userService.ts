@@ -1,5 +1,6 @@
 // User API Service
 import { ApiClient } from "../client";
+import { authService } from "../../auth";
 import type {
   User,
   LoginCredentials,
@@ -8,6 +9,8 @@ import type {
   UserFilters,
   PaginationParams,
   PaginatedResponse,
+  UpdateProfileRequest,
+  OnboardingData,
 } from "../types";
 
 export class UserService {
@@ -44,13 +47,59 @@ export class UserService {
     return response.data!;
   }
 
+  // Update current user profile
+  async updateProfile(profileData: UpdateProfileRequest): Promise<User> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await this.apiClient.authenticatedRequest<User>(
+      "/users/me",
+      {
+        method: "PUT",
+        body: JSON.stringify(profileData),
+      },
+      token
+    );
+    return response.data!;
+  }
+
+  // Save onboarding data
+  async saveOnboarding(
+    onboardingData: OnboardingData
+  ): Promise<{ success: boolean; message: string }> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await this.apiClient.authenticatedRequest<{
+      success: boolean;
+      message: string;
+    }>(
+      "/users/onboarding",
+      {
+        method: "POST",
+        body: JSON.stringify({ onboardingData }),
+      },
+      token
+    );
+    return response.data!;
+  }
+
   // User CRUD operations
   async createUser(userData: Partial<User>): Promise<User> {
     const response = await this.apiClient.post<User>("/users", userData);
     return response.data!;
   }
 
-  async getUserById(id: string, token: string): Promise<User> {
+  async getUserById(id: string): Promise<User> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     const response = await this.apiClient.authenticatedRequest<User>(
       `/users/${id}`,
       { method: "GET" },
@@ -61,9 +110,13 @@ export class UserService {
 
   async getAllUsers(
     filters?: UserFilters,
-    pagination?: PaginationParams,
-    token?: string
+    pagination?: PaginationParams
   ): Promise<PaginatedResponse<User>> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     const params = new URLSearchParams();
 
     if (filters) {
@@ -91,11 +144,12 @@ export class UserService {
     return response.data!;
   }
 
-  async updateUser(
-    id: string,
-    userData: Partial<User>,
-    token: string
-  ): Promise<User> {
+  async updateUser(id: string, userData: Partial<User>): Promise<User> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     const response = await this.apiClient.authenticatedRequest<User>(
       `/users/${id}`,
       {
@@ -107,10 +161,17 @@ export class UserService {
     return response.data!;
   }
 
-  async deleteUser(id: string, token: string): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
+    const token = authService.getToken();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     await this.apiClient.authenticatedRequest(
       `/users/${id}`,
-      { method: "DELETE" },
+      {
+        method: "DELETE",
+      },
       token
     );
   }

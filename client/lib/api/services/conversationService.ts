@@ -226,4 +226,18 @@ export class ConversationService {
   ): Promise<Conversation[]> {
     return this.getAllConversations({ search: searchTerm }, pagination, token);
   }
+
+  async generateTitle(
+    conversationId: string,
+    token: string
+  ): Promise<{ title: string }> {
+    const response = await this.apiClient.authenticatedRequest<{
+      title: string;
+    }>(
+      `/conversations/${conversationId}/generate-title`,
+      { method: "POST" },
+      token
+    );
+    return response.data!;
+  }
 }

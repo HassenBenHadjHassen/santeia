@@ -164,7 +164,19 @@ export default function Chat() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, tempUserMessage]);
+    setMessages((prev) => {
+      const newMessages = [...prev, tempUserMessage];
+      // Trigger scroll after state update
+      setTimeout(() => {
+        const scrollArea = document.querySelector(
+          "[data-radix-scroll-area-viewport]"
+        );
+        if (scrollArea) {
+          scrollArea.scrollTop = scrollArea.scrollHeight;
+        }
+      }, 0);
+      return newMessages;
+    });
 
     try {
       setError(null);
@@ -206,6 +218,17 @@ export default function Chat() {
               };
               newMessages.push(tempAiMessage);
             }
+
+            // Auto-scroll during streaming
+            setTimeout(() => {
+              const scrollArea = document.querySelector(
+                "[data-radix-scroll-area-viewport]"
+              );
+              if (scrollArea) {
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+              }
+            }, 0);
+
             return newMessages;
           });
         },
@@ -339,6 +362,7 @@ export default function Chat() {
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-gradient-to-b from-muted/50 via-background to-background">
+        {/* Sidebar - Hidden on mobile, visible on desktop */}
         <div className="hidden lg:flex lg:w-72 lg:flex-col border-r bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
           <div className="flex flex-col flex-grow pt-4 overflow-y-auto">
             <div className="flex flex-col flex-grow px-4">
@@ -358,15 +382,27 @@ export default function Chat() {
           </div>
         </div>
 
-        <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
           <Header
             user={user ? { name: user.name, email: user.email } : undefined}
+            conversations={conversations.map((c) => ({
+              id: c.id,
+              title: c.title,
+              updatedAt: c.updatedAt,
+            }))}
+            activeId={currentConversation?.id || null}
+            onSelect={handleSelectConversation}
+            onNew={handleNewConversation}
+            onDelete={handleDeleteConversation}
+            isLoading={isLoadingConversations}
           />
 
           <div className="flex-1 overflow-hidden">
-            <div className="px-4 md:px-6 lg:px-8">
+            <div className="h-full flex flex-col">
+              {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mt-4">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 mx-3 mt-2 rounded-md">
                   <p className="text-sm">{error}</p>
                   <button
                     onClick={() => setError(null)}
@@ -377,27 +413,30 @@ export default function Chat() {
                 </div>
               )}
 
-              <div className="mx-auto max-w-4xl mt-4 md:mt-6">
-                <div className="mb-3 md:mb-4 flex items-center justify-between">
-                  <div>
-                    <h1 className="text-lg md:text-xl font-semibold tracking-tight">
-                      {currentConversation?.title || "New Chat"}
-                    </h1>
-                    <p className="text-xs md:text-sm text-muted-foreground">
-                      Ask anything about your health. This is not medical
-                      advice.
-                    </p>
-                  </div>
+              {/* Chat Header */}
+              <div className="px-3 py-3 border-b bg-background/50">
+                <div className="max-w-4xl mx-auto">
+                  <h1 className="text-base sm:text-lg font-semibold tracking-tight truncate">
+                    {currentConversation?.title || "New Chat"}
+                  </h1>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ask anything about your health. This is not medical advice.
+                  </p>
                 </div>
+              </div>
 
-                <div className="rounded-2xl border bg-background shadow-sm overflow-hidden h-[calc(100vh-12rem)]">
-                  <ChatInterface
-                    messages={messages}
-                    onSendMessage={handleSendMessage}
-                    isLoading={isLoading}
-                    userName={user?.name || "You"}
-                    isFetchingConversation={isFetchingConversation}
-                  />
+              {/* Chat Interface Container */}
+              <div className="flex-1 overflow-hidden px-3 py-3">
+                <div className="max-w-4xl mx-auto h-full">
+                  <div className="rounded-xl border bg-background shadow-sm overflow-hidden h-full">
+                    <ChatInterface
+                      messages={messages}
+                      onSendMessage={handleSendMessage}
+                      isLoading={isLoading}
+                      userName={user?.name || "You"}
+                      isFetchingConversation={isFetchingConversation}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

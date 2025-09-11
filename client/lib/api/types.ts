@@ -34,6 +34,23 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Onboarding data
+  diabetesType?: string;
+  diagnosisDate?: string;
+  currentMedications?: string[];
+  bloodSugarTargets?: {
+    fasting: string;
+    beforeMeals: string;
+    afterMeals: string;
+    bedtime: string;
+  };
+  activityLevel?: string;
+  dietaryPreferences?: string[];
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
 }
 
 export interface LoginCredentials {
@@ -57,6 +74,34 @@ export interface UserFilters {
   role?: string;
   isActive?: boolean;
   search?: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+}
+
+export interface OnboardingData {
+  diabetesType: string;
+  diagnosisDate: string;
+  currentMedications: string[];
+  bloodSugarTargets: {
+    fasting: string;
+    beforeMeals: string;
+    afterMeals: string;
+    bedtime: string;
+  };
+  activityLevel: string;
+  dietaryPreferences: string[];
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+}
+
+export interface SaveOnboardingRequest {
+  onboardingData: OnboardingData;
 }
 
 // Conversation Types

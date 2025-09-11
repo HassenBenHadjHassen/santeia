@@ -24,6 +24,7 @@ interface ChatInterfaceProps {
   isLoading?: boolean;
   userName?: string;
   isFetchingConversation?: boolean;
+  onScrollToBottom?: () => void;
 }
 
 export function ChatInterface({
@@ -32,6 +33,7 @@ export function ChatInterface({
   isLoading = false,
   userName = "You",
   isFetchingConversation = false,
+  onScrollToBottom,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -39,12 +41,50 @@ export function ChatInterface({
   const [isRecording, setIsRecording] = useState(false);
   const [supportsSpeech, setSupportsSpeech] = useState(false);
 
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+      const el = scrollAreaRef.current;
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    });
+
+    setTimeout(() => {
+      const el = scrollAreaRef.current;
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    }, 50);
+  };
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
+
+  // Auto-scroll during streaming
+  useEffect(() => {
+    if (isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
+
+  // Expose scroll function to parent
+  useEffect(() => {
+    if (onScrollToBottom) {
+      onScrollToBottom();
+    }
+  }, [onScrollToBottom]);
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    // Small delay to ensure the component is fully rendered
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Detect Web Speech API support
   useEffect(() => {
@@ -159,30 +199,30 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b p-4 bg-secondary/30">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Heart className="h-4 w-4" />
+      <div className="border-b p-3 sm:p-4 bg-secondary/30">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
             </div>
-            <div>
-              <h2 className="text-base md:text-lg font-semibold tracking-tight">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold tracking-tight truncate">
                 SantéAI
               </h2>
-              <p className="text-xs md:text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 Your personal health assistant
               </p>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
               <div className="h-2 w-2 bg-emerald-500 rounded-full"></div>
-              <span>Online</span>
+              <span className="hidden sm:inline">Online</span>
             </div>
             <Button
               size="sm"
               variant="ghost"
-              className="rounded-full hidden sm:inline-flex"
+              className="rounded-full hidden md:inline-flex"
             >
               <Sparkles className="h-4 w-4 mr-2" />
               New insight
@@ -246,7 +286,7 @@ export function ChatInterface({
                   </div>
                 )}
 
-                <div className="flex flex-col max-w-[78%] md:max-w-[70%]">
+                <div className="flex flex-col max-w-[85%] sm:max-w-[78%] md:max-w-[70%]">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[11px] font-medium text-muted-foreground">
                       {message.role === "user" ? userName : "SantéAI"}
@@ -302,7 +342,7 @@ export function ChatInterface({
                   SantéAI
                 </span>
               </div>
-              <div className="flex flex-col max-w-[78%] md:max-w-[70%]">
+              <div className="flex flex-col max-w-[85%] sm:max-w-[78%] md:max-w-[70%]">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[11px] font-medium text-muted-foreground">
                     SantéAI
@@ -333,16 +373,18 @@ export function ChatInterface({
       </ScrollArea>
 
       <div className="border-t p-3 md:p-4 bg-background/60 backdrop-blur">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Describe your symptoms, ask health questions, or share your concerns..."
-            className="min-h-[52px] md:min-h-[60px] max-h-[140px] resize-none rounded-2xl border-border/60 shadow-sm"
-            disabled={isLoading}
-          />
-          <div className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <div className="flex-1 min-w-0">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Describe your symptoms, ask health questions, or share your concerns..."
+              className="w-full min-h-[52px] md:min-h-[60px] max-h-[140px] resize-none rounded-2xl border-border/60 shadow-sm"
+              disabled={isLoading}
+            />
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {supportsSpeech && isRecording && (
               <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-accent border border-border/60">
                 <div className="relative h-6 w-6">

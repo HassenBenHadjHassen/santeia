@@ -2,7 +2,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "./auth";
 import { userService } from "./api";
-import type { User, LoginCredentials, SignupCredentials } from "./api/types";
+import type {
+  User,
+  LoginCredentials,
+  SignupCredentials,
+  UpdateProfileRequest,
+} from "./api/types";
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +15,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (credentials: SignupCredentials) => Promise<void>;
+  updateProfile: (profileData: UpdateProfileRequest) => Promise<void>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
   error: string | null;
   clearError: () => void;
@@ -122,6 +129,47 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   };
 
+  const updateProfile = async (profileData: UpdateProfileRequest) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const updatedUser = await userService.updateProfile(profileData);
+      setUser(updatedUser);
+
+      // Update the stored user data
+      authService.setUser(updatedUser);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Profile update failed";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const token = authService.getToken();
+      if (!token) throw new Error("No authentication token");
+
+      const updatedUser = await userService.me(token);
+      setUser(updatedUser);
+      authService.setUser(updatedUser);
+    } catch (err) {
+      console.error("Error refreshing user:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to refresh user data";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -132,6 +180,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     login,
     signup,
+    updateProfile,
+    refreshUser,
     logout,
     error,
     clearError,

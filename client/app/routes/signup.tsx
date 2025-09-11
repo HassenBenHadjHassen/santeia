@@ -66,7 +66,7 @@ export default function Signup() {
         email: formData.email,
         password: formData.password,
       });
-      navigate("/");
+      navigate("/onboarding");
     } catch (err) {
       // Error is handled by the auth context
       console.error("Signup error:", err);

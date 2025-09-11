@@ -1,9 +1,17 @@
 "use client";
 
 import { cn } from "lib/utils";
-import { Heart, Plus, MessageSquare, Trash2 } from "lucide-react";
+import {
+  Heart,
+  Plus,
+  MessageSquare,
+  Trash2,
+  User,
+  Settings,
+} from "lucide-react";
 import { Button } from "components/ui/button";
 import { ScrollArea } from "components/ui/scroll-area";
+import { Link } from "react-router";
 
 interface SidebarProps {
   className?: string;
@@ -25,8 +33,8 @@ export function Sidebar({
   onDelete,
 }: SidebarProps) {
   return (
-    <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
+    <div className={cn("pb-12 h-full flex flex-col", className)}>
+      <div className="space-y-4 py-4 flex-1 flex flex-col">
         <div className="px-3 py-2">
           <div className="flex items-center gap-2 mb-3">
             <Heart className="h-5 w-5 text-primary" />
@@ -39,7 +47,7 @@ export function Sidebar({
           </p>
         </div>
 
-        <div className="px-3">
+        <div className="px-3 space-y-2">
           <Button onClick={onNew} className="w-full justify-start rounded-full">
             <Plus className="mr-2 h-4 w-4" />
             Start New Chat
@@ -49,7 +57,7 @@ export function Sidebar({
         <div className="px-3 pt-2 text-xs text-muted-foreground">
           Recent conversations
         </div>
-        <ScrollArea className="px-3">
+        <ScrollArea className="px-3 flex-1">
           <div className="space-y-1 py-1">
             {isLoading ? (
               <div className="text-xs text-muted-foreground p-2">Loading…</div>
@@ -62,7 +70,7 @@ export function Sidebar({
                 <div
                   key={c.id}
                   className={cn(
-                    "w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent",
+                    "w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent transition-colors",
                     c.id === activeId && "bg-secondary border border-border/60"
                   )}
                   onClick={() => {
@@ -70,15 +78,15 @@ export function Sidebar({
                   }}
                 >
                   <div className="flex items-center gap-2 min-w-0 pr-2">
-                    <MessageSquare className="h-4 w-4" />
-                    <span className="truncate">
+                    <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate text-sm whitespace-pre-wrap">
                       {c.title || "Untitled conversation"}
                     </span>
                   </div>
                   {onDelete && (
                     <button
                       type="button"
-                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background"
+                      className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background flex-shrink-0 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(c.id);

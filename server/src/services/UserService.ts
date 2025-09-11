@@ -1,7 +1,12 @@
 // User service implementation
 import { BaseService } from "./BaseService";
 import { UserRepository } from "@/repositories/UserRepository";
-import { User as IUser, ServiceResponse, ValidationError } from "@/types";
+import {
+  User as IUser,
+  ServiceResponse,
+  ValidationError,
+  OnboardingData,
+} from "@/types";
 import bcrypt from "bcryptjs";
 
 export class UserService extends BaseService<IUser> {
@@ -210,6 +215,47 @@ export class UserService extends BaseService<IUser> {
       return this.createSuccessResponse(userWithoutPassword as IUser);
     } catch (error) {
       return this.createErrorResponse(`Failed to validate password: ${error}`);
+    }
+  }
+
+  public async saveOnboarding(
+    userId: string,
+    onboardingData: OnboardingData
+  ): Promise<ServiceResponse<{ success: boolean; message: string }>> {
+    try {
+      // Check if user exists
+      const existingUser = await this.userRepository.findById(userId);
+
+      if (!existingUser) {
+        return this.createErrorResponse("User not found");
+      }
+
+      // Prepare onboarding data for update
+      const updateData: Partial<IUser> = {
+        diabetesType: onboardingData.diabetesType,
+        diagnosisDate: onboardingData.diagnosisDate || null,
+        currentMedications: onboardingData.currentMedications,
+        bloodSugarTargets: onboardingData.bloodSugarTargets,
+        activityLevel: onboardingData.activityLevel,
+        dietaryPreferences: onboardingData.dietaryPreferences,
+        emergencyContact: onboardingData.emergencyContact,
+      };
+
+      // Update user with onboarding data
+      const updatedUser = await this.userRepository.update(userId, updateData);
+
+      if (!updatedUser) {
+        return this.createErrorResponse("Failed to save onboarding data");
+      }
+
+      return this.createSuccessResponse(
+        { success: true, message: "Onboarding data saved successfully" },
+        "Onboarding completed successfully"
+      );
+    } catch (error) {
+      return this.createErrorResponse(
+        `Failed to save onboarding data: ${error}`
+      );
     }
   }
 }

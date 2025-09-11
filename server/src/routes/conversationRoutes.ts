@@ -33,6 +33,10 @@ router.post(
   conversationController.sendMessageStream
 );
 router.put("/:id", conversationController.update);
+router.post(
+  "/:conversationId/generate-title",
+  conversationController.generateTitle
+);
 router.delete("/:id", conversationController.delete);
 
 export default router;

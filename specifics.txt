@@ -1,80 +1,30 @@
-Overview
-SantéAI is a smart AI health assistant that grows more helpful the more users interact with it. After account creation, users can start chatting naturally, just like in a regular chat app. Unlike traditional medical tools, SantéAI doesn’t require structured forms or manual inputs; instead, it learns from every conversation.
-Whether a user is asking about a common cold, chronic condition, dietary choices, or general health questions, SantéAI analyzes the information shared in real-time and provides relevant guidance, tips, or explanations. Over time, the AI personalizes its advice, understanding the user’s habits, conditions, and preferences.
-SantéAI acts as a personalized health companion, offering insights and guidance while always emphasizing that it does not replace professional medical care.
+Application Objectives
+Helping diabetic patients better manage their blood sugar levels on a daily basis.
+Provide personalized monitoring (meals, activity, insulin/medications).
+Detect and prevent risks (hypo/hyperglycemia).
+Provide validated and appropriate health advice.
 
-Core Features
-Adaptive AI Conversations
-
-
-Users chat naturally about symptoms, meals, lifestyle, or general health questions.
-
-
-AI learns from each conversation to provide more personalized, accurate guidance over time.
-
-
-Works for all types of health concerns, from minor illnesses to chronic conditions.
-
-
-Passive Health Tracking
-
-
-All health-related information shared in chats is stored securely.
-
-
-AI uses past interactions to recognize patterns, habits, or recurring issues.
-
-
-Intuitive Chat Interface
-
-
-Feels like a normal chat app with a friendly AI assistant.
-
-
-AI provides responses in clear, understandable language.
-
-
-Personalized Insights & Recommendations
-
-
-Based on accumulated knowledge of the user, the AI can suggest lifestyle adjustments, highlight potential risks, or provide helpful explanations.
-
-
-Always encourages consulting healthcare professionals when necessary.
-
-
-Privacy & Safety
-
-
-User data is stored securely and confidentially.
-
-
-AI guidance is informational, not a substitute for professional medical advice.
-
-
-
-Target Audience
-Anyone seeking reliable health guidance through conversation.
-
-
-People who want a personalized AI assistant that adapts to their lifestyle and health needs.
-
-
-Users who prefer natural, ongoing dialogue over forms or questionnaires.
-
-
-
-Value Proposition
-Provides a human-like, adaptive health assistant that gets smarter with every interaction.
-
-
-Helps users make informed health decisions without tedious input.
-
-
-Bridges the gap between self-monitoring and professional care in a conversational, approachable way.
-
-
-Makes health guidance accessible, continuous, and personalized for everyone.
+Main Features
+Blood sugar monitoring
+Manual entry
+Evolution graphs (daily, weekly, monthly).
+Calculation of estimated HbA1c.
+Food and activity diary
+Meal recording (with automatic recognition via AI or food base).
+Automatic carbohydrate calculation.
+Physical activity tracking.
+Medication and insulin management
+Injection/dose reminders.
+Dose history.
+Personalized recommendations (without replacing a doctor but providing guidance).
+Smart Assistant
+Medical chatbot adapted to diabetes (frequently asked questions, advice).
+Smart alerts:
+“Watch out, your blood sugar is low, have a snack.”
+“You ate a meal rich in carbohydrates, remember to check your blood sugar in 2 hours.”
+Health Dashboard
+Weight, blood pressure, cholesterol, physical activity.
+Export to PDF for doctor/endocrinologist.
 
 Tech Stack
 Frontend: ReactJS
@@ -85,6 +35,5 @@ Database: MongoDB with Prisma
 LLM: GPT-OSS 20B ( via Hugging Face)
 
 
-System Message for GPT-OSS 20B (SantéAI behavior):
+System Message
 You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your role is to support users in managing blood sugar levels, meals, activity, and medication by providing educational and personalized guidance without ever diagnosing, prescribing, or replacing medical professionals. Always include a disclaimer advising users to consult a healthcare professional when needed. If a user mentions urgent symptoms (chest pain, fainting, severe headache, shortness of breath, vision loss, etc.), immediately recommend seeking emergency care. Start each conversation with a warm, respectful greeting without assuming symptoms. Be empathetic, concise (2–3 sentences), and ask only essential questions needed for safety. Respond based on available user history when relevant, offer helpful alerts and reminders (such as blood sugar checks or post-meal tips), and always prioritize safety and clarity in every reply. Never use em dashes (—) in your responses.
-
