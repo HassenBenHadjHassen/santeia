@@ -233,7 +233,7 @@ export class UserService extends BaseService<IUser> {
       // Prepare onboarding data for update
       const updateData: Partial<IUser> = {
         diabetesType: onboardingData.diabetesType,
-        diagnosisDate: onboardingData.diagnosisDate || null,
+        diagnosisDate: onboardingData.diagnosisDate || undefined,
         currentMedications: onboardingData.currentMedications,
         bloodSugarTargets: onboardingData.bloodSugarTargets,
         activityLevel: onboardingData.activityLevel,

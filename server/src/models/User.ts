@@ -7,6 +7,24 @@ export class User extends BaseModel implements IUser {
   public name: string;
   public role: "ADMIN" | "USER" | "MODERATOR";
   public isActive: boolean;
+  public password?: string;
+  // Onboarding data
+  public diabetesType?: string;
+  public diagnosisDate?: string;
+  public currentMedications?: string[];
+  public bloodSugarTargets?: {
+    fasting: string;
+    beforeMeals: string;
+    afterMeals: string;
+    bedtime: string;
+  };
+  public activityLevel?: string;
+  public dietaryPreferences?: string[];
+  public emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
 
   constructor(data: Partial<IUser> = {}) {
     super(data);
@@ -14,6 +32,15 @@ export class User extends BaseModel implements IUser {
     this.name = data.name || "";
     this.role = data.role || "USER";
     this.isActive = data.isActive ?? true;
+    this.password = data.password;
+    // Initialize onboarding data
+    this.diabetesType = data.diabetesType;
+    this.diagnosisDate = data.diagnosisDate;
+    this.currentMedications = data.currentMedications;
+    this.bloodSugarTargets = data.bloodSugarTargets;
+    this.activityLevel = data.activityLevel;
+    this.dietaryPreferences = data.dietaryPreferences;
+    this.emergencyContact = data.emergencyContact;
   }
 
   public validate(): boolean {
@@ -33,6 +60,14 @@ export class User extends BaseModel implements IUser {
       name: this.name,
       role: this.role,
       isActive: this.isActive,
+      password: this.password,
+      diabetesType: this.diabetesType,
+      diagnosisDate: this.diagnosisDate,
+      currentMedications: this.currentMedications,
+      bloodSugarTargets: this.bloodSugarTargets,
+      activityLevel: this.activityLevel,
+      dietaryPreferences: this.dietaryPreferences,
+      emergencyContact: this.emergencyContact,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -44,6 +79,16 @@ export class User extends BaseModel implements IUser {
     this.name = data.name || this.name;
     this.role = data.role || this.role;
     this.isActive = data.isActive ?? this.isActive;
+    this.password = data.password || this.password;
+    this.diabetesType = data.diabetesType || this.diabetesType;
+    this.diagnosisDate = data.diagnosisDate || this.diagnosisDate;
+    this.currentMedications =
+      data.currentMedications || this.currentMedications;
+    this.bloodSugarTargets = data.bloodSugarTargets || this.bloodSugarTargets;
+    this.activityLevel = data.activityLevel || this.activityLevel;
+    this.dietaryPreferences =
+      data.dietaryPreferences || this.dietaryPreferences;
+    this.emergencyContact = data.emergencyContact || this.emergencyContact;
     this.createdAt = data.createdAt ? new Date(data.createdAt) : this.createdAt;
     this.updatedAt = data.updatedAt ? new Date(data.updatedAt) : this.updatedAt;
     return this;
