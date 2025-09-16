@@ -135,4 +135,164 @@ export const commonSchemas = {
       }).required(),
     }),
   },
+
+  bloodSugar: {
+    createReading: Joi.object({
+      value: Joi.number().positive().required(),
+      unit: Joi.string().valid("mg/dL", "mmol/L").required(),
+      readingType: Joi.string()
+        .valid("fasting", "before_meal", "after_meal", "bedtime", "random")
+        .required(),
+      notes: Joi.string().max(500).optional(),
+      timestamp: Joi.date().optional(),
+    }),
+  },
+
+  meal: {
+    create: Joi.object({
+      name: Joi.string().min(1).max(100).required(),
+      description: Joi.string().max(500).optional(),
+      calories: Joi.number().min(0).optional(),
+      carbohydrates: Joi.number().min(0).optional(),
+      proteins: Joi.number().min(0).optional(),
+      fats: Joi.number().min(0).optional(),
+      fiber: Joi.number().min(0).optional(),
+      sugar: Joi.number().min(0).optional(),
+      sodium: Joi.number().min(0).optional(),
+      mealType: Joi.string()
+        .valid("breakfast", "lunch", "dinner", "snack")
+        .required(),
+      timestamp: Joi.date().optional(),
+      notes: Joi.string().max(500).optional(),
+    }),
+  },
+
+  physicalActivity: {
+    create: Joi.object({
+      name: Joi.string().min(1).max(100).required(),
+      description: Joi.string().max(500).optional(),
+      activityType: Joi.string()
+        .valid(
+          "cardio",
+          "strength",
+          "flexibility",
+          "sports",
+          "walking",
+          "cycling",
+          "swimming",
+          "other"
+        )
+        .required(),
+      duration: Joi.number().positive().required(),
+      intensity: Joi.string().valid("low", "moderate", "high").required(),
+      caloriesBurned: Joi.number().min(0).optional(),
+      distance: Joi.number().min(0).optional(),
+      heartRate: Joi.number().min(0).optional(),
+      timestamp: Joi.date().optional(),
+      notes: Joi.string().max(500).optional(),
+    }),
+  },
+
+  medication: {
+    create: Joi.object({
+      name: Joi.string().min(1).max(100).required(),
+      type: Joi.string()
+        .valid("oral", "injection", "inhaler", "topical", "other")
+        .required(),
+      dosage: Joi.string().min(1).max(50).required(),
+      unit: Joi.string().valid("mg", "g", "ml", "units", "pills").required(),
+      frequency: Joi.string()
+        .valid("daily", "weekly", "monthly", "as_needed")
+        .required(),
+      timesPerDay: Joi.number().integer().min(1).max(6).optional(),
+      specificTimes: Joi.array()
+        .items(Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/))
+        .optional(),
+      startDate: Joi.date().required(),
+      endDate: Joi.date().optional(),
+      instructions: Joi.string().max(1000).optional(),
+      sideEffects: Joi.string().max(1000).optional(),
+      notes: Joi.string().max(500).optional(),
+    }),
+
+    recordDose: Joi.object({
+      medicationId: Joi.string().required(),
+      dosage: Joi.string().min(1).max(50).required(),
+      unit: Joi.string().valid("mg", "g", "ml", "units", "pills").required(),
+      takenAt: Joi.date().optional(),
+      notes: Joi.string().max(500).optional(),
+    }),
+
+    createReminder: Joi.object({
+      medicationId: Joi.string().required(),
+      reminderTime: Joi.string()
+        .pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+        .required(),
+      message: Joi.string().min(1).max(200).optional(),
+      isActive: Joi.boolean().default(true),
+    }),
+  },
+
+  healthMetric: {
+    create: Joi.object({
+      type: Joi.string()
+        .valid(
+          "weight",
+          "height",
+          "bmi",
+          "temperature",
+          "heart_rate",
+          "blood_pressure",
+          "cholesterol"
+        )
+        .required(),
+      value: Joi.string().required(),
+      unit: Joi.string().required(),
+      timestamp: Joi.date().optional(),
+      notes: Joi.string().max(500).optional(),
+      additionalData: Joi.object().optional(),
+    }),
+  },
+
+  alert: {
+    createAlert: Joi.object({
+      type: Joi.string()
+        .valid(
+          "BLOOD_SUGAR_LOW",
+          "BLOOD_SUGAR_HIGH",
+          "MEDICATION_REMINDER",
+          "MEAL_REMINDER",
+          "EXERCISE_REMINDER",
+          "APPOINTMENT_REMINDER",
+          "GENERAL_HEALTH"
+        )
+        .required(),
+      title: Joi.string().min(1).max(100).required(),
+      message: Joi.string().min(1).max(1000).required(),
+      priority: Joi.string()
+        .valid("low", "medium", "high", "urgent")
+        .default("medium"),
+      data: Joi.object().optional(),
+    }),
+
+    createBloodSugarAlert: Joi.object({
+      isHigh: Joi.boolean().required(),
+      value: Joi.number().min(0).max(1000).required(),
+      targetRange: Joi.object({
+        min: Joi.number().required(),
+        max: Joi.number().required(),
+      }).required(),
+    }),
+
+    createMedicationReminder: Joi.object({
+      medicationName: Joi.string().min(1).max(100).required(),
+      dosage: Joi.string().min(1).max(50).required(),
+      nextDoseTime: Joi.date().required(),
+    }),
+
+    createReminder: Joi.object({
+      mealType: Joi.string().min(1).max(50).required(),
+      message: Joi.string().min(1).max(500).required(),
+    }),
+  },
 };

@@ -10,6 +10,13 @@ import {
   MessageSquare,
   Trash2,
   User,
+  Home,
+  BookOpen,
+  Pill,
+  BarChart3,
+  FileText,
+  Bot,
+  Calendar,
 } from "lucide-react";
 import { Link } from "react-router";
 
@@ -80,65 +87,130 @@ export function MobileMenu({
             </div>
 
             <div className="flex flex-col h-full">
-              {/* New Chat Button */}
+              {/* Main Navigation */}
               <div className="p-3 border-b">
-                <Button
-                  onClick={handleNew}
-                  className="w-full justify-start rounded-full"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Start New Chat
-                </Button>
+                <div className="space-y-1">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/">
+                      <Home className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/diary">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Health Diary
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/medications">
+                      <Pill className="mr-2 h-4 w-4" />
+                      Medications
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/chat">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Chat
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Link to="/export">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Export Data
+                    </Link>
+                  </Button>
+                </div>
               </div>
 
-              {/* Conversations List */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-3 py-2 text-xs text-muted-foreground">
-                  Recent conversations
+              {/* New Chat Button - Only show if conversations are provided */}
+              {conversations && (
+                <div className="p-3 border-b">
+                  <Button
+                    onClick={handleNew}
+                    className="w-full justify-start rounded-full"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Start New Chat
+                  </Button>
                 </div>
-                <div className="px-3 space-y-1">
-                  {isLoading ? (
-                    <div className="text-xs text-muted-foreground p-2">
-                      Loading…
-                    </div>
-                  ) : conversations.length === 0 ? (
-                    <div className="text-xs text-muted-foreground p-2">
-                      No conversations yet
-                    </div>
-                  ) : (
-                    conversations.map((c) => (
-                      <div
-                        key={c.id}
-                        className={`w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent ${
-                          c.id === activeId &&
-                          "bg-secondary border border-border/60"
-                        }`}
-                        onClick={() => handleSelect(c.id)}
-                      >
-                        <div className="flex items-center gap-2 min-w-0 pr-2">
-                          <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate text-sm">
-                            {c.title || "Untitled conversation"}
-                          </span>
-                        </div>
-                        {onDelete && (
-                          <button
-                            type="button"
-                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background flex-shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(c.id);
-                            }}
-                            aria-label="Delete conversation"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
+              )}
+
+              {/* Conversations List - Only show if conversations are provided */}
+              {conversations && (
+                <div className="flex-1 overflow-y-auto">
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                    Recent conversations
+                  </div>
+                  <div className="px-3 space-y-1">
+                    {isLoading ? (
+                      <div className="text-xs text-muted-foreground p-2">
+                        Loading…
                       </div>
-                    ))
-                  )}
+                    ) : conversations.length === 0 ? (
+                      <div className="text-xs text-muted-foreground p-2">
+                        No conversations yet
+                      </div>
+                    ) : (
+                      conversations.map((c) => (
+                        <div
+                          key={c.id}
+                          className={`w-full flex items-center justify-between rounded-xl px-3 py-2 cursor-pointer hover:bg-accent ${
+                            c.id === activeId &&
+                            "bg-secondary border border-border/60"
+                          }`}
+                          onClick={() => handleSelect(c.id)}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate text-sm">
+                              {c.title || "Untitled conversation"}
+                            </span>
+                          </div>
+                          {onDelete && (
+                            <button
+                              type="button"
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-background flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(c.id);
+                              }}
+                              aria-label="Delete conversation"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Profile Link */}
               <div className="p-3 border-t">

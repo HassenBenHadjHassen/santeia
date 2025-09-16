@@ -213,4 +213,61 @@ export interface RequestConfig {
   retries?: number;
   retryDelay?: number;
   headers?: Record<string, string>;
+  // Axios specific options
+  validateStatus?: (status: number) => boolean;
+  responseType?:
+    | "json"
+    | "text"
+    | "blob"
+    | "arraybuffer"
+    | "document"
+    | "stream";
+  withCredentials?: boolean;
 }
+
+// Health Data Types
+export type AlertType =
+  | "BLOOD_SUGAR_LOW"
+  | "BLOOD_SUGAR_HIGH"
+  | "MEDICATION_REMINDER"
+  | "MEAL_REMINDER"
+  | "EXERCISE_REMINDER"
+  | "APPOINTMENT_REMINDER"
+  | "GENERAL_HEALTH";
+
+export type ReadingType =
+  | "fasting"
+  | "before_meal"
+  | "after_meal"
+  | "bedtime"
+  | "random";
+export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
+export type ActivityType =
+  | "cardio"
+  | "strength"
+  | "flexibility"
+  | "sports"
+  | "walking"
+  | "cycling"
+  | "swimming"
+  | "other";
+export type Intensity = "low" | "moderate" | "high";
+export type MedicationType =
+  | "oral"
+  | "injection"
+  | "inhaler"
+  | "topical"
+  | "other";
+export type Frequency = "daily" | "weekly" | "monthly" | "as_needed";
+export type HealthMetricType =
+  | "weight"
+  | "height"
+  | "bmi"
+  | "temperature"
+  | "heart_rate"
+  | "blood_pressure"
+  | "cholesterol";
+export type Priority = "low" | "medium" | "high" | "urgent";
+
+// Re-export service response type for convenience
+export type ServiceResponse<T> = ApiResponse<T>;

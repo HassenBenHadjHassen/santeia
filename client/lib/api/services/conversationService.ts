@@ -27,9 +27,9 @@ export class ConversationService {
       "/conversations",
       {
         method: "POST",
-        body: JSON.stringify({
+        data: {
           title: conversationData.title,
-        }),
+        },
       },
       token
     );
@@ -88,7 +88,7 @@ export class ConversationService {
       `/conversations/${id}`,
       {
         method: "PUT",
-        body: JSON.stringify(conversationData),
+        data: conversationData,
       },
       token
     );
@@ -113,10 +113,10 @@ export class ConversationService {
         `/conversations/${messageData.conversationId}/messages`,
         {
           method: "POST",
-          body: JSON.stringify({
+          data: {
             content: messageData.content,
             conversationId: messageData.conversationId,
-          }),
+          },
         },
         token
       );
@@ -191,6 +191,24 @@ export class ConversationService {
                     onMessage(data.message);
                   }
                   break;
+                case "memory_saved": {
+                  const counts = data.counts || {};
+                  const hint = {
+                    id: `hint_${Date.now()}_${Math.random()
+                      .toString(36)
+                      .substring(2, 9)}`,
+                    content:
+                      counts.createdMeals ||
+                      counts.createdMetrics ||
+                      counts.createdBloodSugars
+                        ? "Saved to your health profile."
+                        : "",
+                    role: "assistant",
+                    timestamp: new Date().toISOString(),
+                  } as unknown as Message;
+                  if (hint.content) onMessage(hint);
+                  break;
+                }
                 case "error":
                   onError(data.error || "Unknown error");
                   break;

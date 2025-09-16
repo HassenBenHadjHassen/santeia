@@ -28,7 +28,7 @@ export class DatabaseConnection {
             url: config.DATABASE_URL,
           },
         },
-        log: config.NODE_ENV === "development" ? ["query", "info", "warn", "error"] : ["error"],
+        log: [],
       });
 
       // Test the connection

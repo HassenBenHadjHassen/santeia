@@ -1,10 +1,11 @@
 Application Objectives
+
 Helping diabetic patients better manage their blood sugar levels on a daily basis.
 Provide personalized monitoring (meals, activity, insulin/medications).
 Detect and prevent risks (hypo/hyperglycemia).
 Provide validated and appropriate health advice.
-
 Main Features
+
 Blood sugar monitoring
 Manual entry
 Evolution graphs (daily, weekly, monthly).
@@ -24,7 +25,7 @@ Smart alerts:
 “You ate a meal rich in carbohydrates, remember to check your blood sugar in 2 hours.”
 Health Dashboard
 Weight, blood pressure, cholesterol, physical activity.
-Export to PDF for doctor/endocrinologist.
+Export to PDF for doctor/endocrinologist
 
 Tech Stack
 Frontend: ReactJS

@@ -58,7 +58,7 @@ export class UserService {
       "/users/me",
       {
         method: "PUT",
-        body: JSON.stringify(profileData),
+        data: profileData,
       },
       token
     );
@@ -81,7 +81,7 @@ export class UserService {
       "/users/onboarding",
       {
         method: "POST",
-        body: JSON.stringify({ onboardingData }),
+        data: { onboardingData },
       },
       token
     );
@@ -154,7 +154,7 @@ export class UserService {
       `/users/${id}`,
       {
         method: "PUT",
-        body: JSON.stringify(userData),
+        data: userData,
       },
       token
     );

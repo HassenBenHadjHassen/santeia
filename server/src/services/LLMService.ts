@@ -1,9 +1,10 @@
-// LLM Service using OpenAI client (against HF router by default)
+// LLM Service with fallback support (Hugging Face -> Ollama)
 import OpenAI from "openai";
 import { config } from "@/config/environment";
 import { LLMRepository } from "@/repositories/LLMRepository";
 import { UserRepository } from "@/repositories/UserRepository";
 import { ServiceResponse } from "@/types";
+import { MemoryService } from "@/services/MemoryService";
 
 export interface LLMRequest {
   prompt: string;
@@ -20,22 +21,85 @@ export interface LLMResponse {
   tokens: number;
   duration: number;
   cost?: number;
+  provider?: string;
+}
+
+export type LLMProvider = "huggingface" | "ollama";
+
+export interface ProviderConfig {
+  name: LLMProvider;
+  baseURL: string;
+  apiKey?: string;
+  model: string;
+  enabled: boolean;
 }
 
 export class LLMService {
-  private readonly openai: OpenAI;
-  private model: string;
-  private llmRepository: LLMRepository;
-  private userRepository: UserRepository;
+  private readonly providers: ProviderConfig[];
+  private readonly llmRepository: LLMRepository;
+  private readonly userRepository: UserRepository;
+  private readonly memoryService: MemoryService;
+  private currentProvider: LLMProvider = "huggingface";
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: config.HUGGINGFACE_API_KEY,
-      baseURL: config.OPENAI_BASE_URL,
-    });
-    this.model = config.HUGGINGFACE_MODEL;
     this.llmRepository = new LLMRepository();
     this.userRepository = new UserRepository();
+    this.memoryService = new MemoryService();
+
+    // Initialize providers in order of preference
+    this.providers = [
+      {
+        name: "huggingface",
+        baseURL: config.OPENAI_BASE_URL,
+        apiKey: config.HUGGINGFACE_API_KEY,
+        model: config.HUGGINGFACE_MODEL,
+        enabled: true,
+      },
+      {
+        name: "ollama",
+        baseURL: config.OLLAMA_BASE_URL,
+        model: config.OLLAMA_MODEL,
+        enabled: config.OLLAMA_ENABLED,
+      },
+    ];
+  }
+
+  private getProvider(providerName: LLMProvider): ProviderConfig | undefined {
+    return this.providers.find((p) => p.name === providerName && p.enabled);
+  }
+
+  private getNextProvider(): ProviderConfig | undefined {
+    const currentIndex = this.providers.findIndex(
+      (p) => p.name === this.currentProvider
+    );
+    for (let i = currentIndex + 1; i < this.providers.length; i++) {
+      if (this.providers[i].enabled) {
+        return this.providers[i];
+      }
+    }
+    return undefined;
+  }
+
+  private createOpenAIClient(provider: ProviderConfig): OpenAI {
+    return new OpenAI({
+      apiKey: provider.apiKey || "dummy-key", // Ollama doesn't require API key
+      baseURL: provider.baseURL,
+    });
+  }
+
+  private async testProvider(provider: ProviderConfig): Promise<boolean> {
+    try {
+      const client = this.createOpenAIClient(provider);
+      await client.chat.completions.create({
+        model: provider.model,
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      });
+      return true;
+    } catch (error) {
+      console.warn(`Provider ${provider.name} is not available:`, error);
+      return false;
+    }
   }
 
   private async getUserContext(userId: string): Promise<string> {
@@ -57,6 +121,10 @@ export class LLMService {
 
       if (user.diabetesType) {
         context += `Diabetes Type: ${user.diabetesType}\n`;
+      }
+
+      if (user.dateOfBirth) {
+        context += `Date of Birth: ${user.dateOfBirth}\n`;
       }
 
       if (user.diagnosisDate) {
@@ -101,6 +169,142 @@ export class LLMService {
         context += `Emergency Contact: ${contact.name} (${contact.relationship}) - ${contact.phone}\n`;
       }
 
+      // Append recent health events (lightweight summary)
+      try {
+        const { MealService } = require("@/services/MealService");
+        const {
+          HealthMetricService,
+        } = require("@/services/HealthMetricService");
+        const {
+          PhysicalActivityService,
+        } = require("@/services/PhysicalActivityService");
+        const { MedicationService } = require("@/services/MedicationService");
+        const mealService = new MealService();
+        const metricService = new HealthMetricService();
+        const activityService = new PhysicalActivityService();
+        const medicationService = new MedicationService();
+
+        const [
+          recentMealsRes,
+          latestSysRes,
+          latestDiaRes,
+          latestWeightRes,
+          recentActivitiesRes,
+          doseSummaryRes,
+        ] = await Promise.all([
+          mealService.getRecentMeals(userId, 5),
+          metricService.getLatestMetric(userId, "BLOOD_PRESSURE_SYSTOLIC"),
+          metricService.getLatestMetric(userId, "BLOOD_PRESSURE_DIASTOLIC"),
+          metricService.getLatestMetric(userId, "WEIGHT"),
+          activityService.getRecentActivities(userId, 3),
+          medicationService.getDoseSummary(userId),
+        ]);
+
+        const lines: string[] = [];
+        if (
+          recentMealsRes.success &&
+          recentMealsRes.data &&
+          recentMealsRes.data.length > 0
+        ) {
+          const names = recentMealsRes.data
+            .slice(0, 3)
+            .map(
+              (m: any) =>
+                `${m.name} (${new Date(m.timestamp).toLocaleString()})`
+            )
+            .join(", ");
+          lines.push(`Recent Meals: ${names}`);
+        }
+
+        if (latestSysRes.success && latestDiaRes.success) {
+          const s = latestSysRes.data;
+          const d = latestDiaRes.data;
+          if (s && d) {
+            lines.push(
+              `Latest Blood Pressure: ${Math.round(s.value)}/${Math.round(
+                d.value
+              )} mmHg (${new Date(s.timestamp).toLocaleString()})`
+            );
+          }
+        }
+
+        if (latestWeightRes.success && latestWeightRes.data) {
+          const w = latestWeightRes.data;
+          lines.push(
+            `Latest Weight: ${Math.round(w.value * 10) / 10} ${
+              w.unit
+            } (${new Date(w.timestamp).toLocaleString()})`
+          );
+        }
+
+        if (
+          recentActivitiesRes.success &&
+          recentActivitiesRes.data &&
+          recentActivitiesRes.data.length > 0
+        ) {
+          const acts = recentActivitiesRes.data
+            .slice(0, 3)
+            .map(
+              (a: any) =>
+                `${a.activityType} ${a.duration}min (${new Date(
+                  a.timestamp
+                ).toLocaleString()})`
+            )
+            .join(", ");
+          lines.push(`Recent Activities: ${acts}`);
+        }
+
+        if (doseSummaryRes.success && doseSummaryRes.data) {
+          const recent = doseSummaryRes.data.recentDoses || [];
+          if (recent.length > 0) {
+            const short = recent
+              .slice(0, 3)
+              .map(
+                (d: any) =>
+                  `${d.dosage}${d.unit ? " " + d.unit : ""} (${new Date(
+                    d.takenAt
+                  ).toLocaleString()})`
+              )
+              .join(", ");
+            lines.push(`Recent Medication Doses: ${short}`);
+          }
+        }
+
+        if (lines.length > 0) {
+          context +=
+            `\n\nRecent Health Events:\n` +
+            lines.map((l) => `- ${l}`).join("\n");
+        }
+      } catch (inner) {
+        // If enrichment fails, proceed with basic profile
+      }
+
+      // Add conversational memories for cross-chat persistence
+      try {
+        console.log(`🧠 [MEMORY] Retrieving memories for user ${userId}...`);
+        const conversationalMemories =
+          await this.memoryService.getConversationalMemories(userId, 15);
+        console.log(
+          `🧠 [MEMORY] Found ${conversationalMemories.length} memories:`,
+          conversationalMemories
+        );
+
+        if (conversationalMemories.length > 0) {
+          context += `\n\nPrevious Conversations Memory:\n`;
+          context += conversationalMemories
+            .map((memory) => `- ${memory}`)
+            .join("\n");
+          console.log(`✅ [MEMORY] Added memories to context`);
+        } else {
+          console.log(`ℹ️ [MEMORY] No memories found for this user`);
+        }
+      } catch (error) {
+        console.warn(
+          "❌ [MEMORY] Failed to retrieve conversational memories:",
+          error
+        );
+      }
+
       return context;
     } catch (error) {
       console.error("Error getting user context:", error);
@@ -108,149 +312,206 @@ export class LLMService {
     }
   }
 
+  public async getCurrentSystemMessage(userId: string): Promise<string> {
+    // Reproduce the same system message construction used during responses
+    const base =
+      "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.";
+
+    const userContext = await this.getUserContext(userId);
+    if (!userContext) return base;
+    return (
+      base +
+      `\n\nIMPORTANT: Use this user's health information to provide personalized advice:\n${userContext}\n\nWhen giving advice, consider their specific diabetes type, medications, blood sugar targets, and dietary preferences. Always tailor your responses to their individual health profile while maintaining safety and encouraging them to consult their healthcare provider.`
+    );
+  }
+
   public async generateText(
     request: LLMRequest
   ): Promise<ServiceResponse<LLMResponse>> {
-    try {
-      const startTime = Date.now();
+    const startTime = Date.now();
+    let lastError: Error | null = null;
 
-      // Call OpenAI-compatible chat completions
-      const completion = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.",
-          },
-          { role: "user", content: request.prompt },
-        ],
-        temperature: request.temperature ?? 0.7,
-        top_p: request.topP ?? 0.9,
-        max_tokens: request.maxTokens ?? 512,
-      });
+    // Try each provider in order
+    for (const provider of this.providers) {
+      if (!provider.enabled) continue;
 
-      const duration = Date.now() - startTime;
-      const generatedText = completion.choices?.[0]?.message?.content || "";
+      try {
+        console.log(`Attempting to use provider: ${provider.name}`);
 
-      // Calculate approximate token count (rough estimation)
-      const tokens = Math.ceil(generatedText.length / 4);
+        const client = this.createOpenAIClient(provider);
 
-      // Calculate cost (approximate for Llama 3.1 405B)
-      const cost = this.calculateCost(tokens);
+        // Call OpenAI-compatible chat completions
+        const completion = await client.chat.completions.create({
+          model: provider.model,
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.",
+            },
+            { role: "user", content: request.prompt },
+          ],
+          temperature: request.temperature ?? 0.7,
+          top_p: request.topP ?? 0.9,
+          max_tokens: request.maxTokens ?? 512,
+        });
 
-      const llmResponse: LLMResponse = {
-        text: generatedText.trim(),
-        tokens,
-        duration,
-        cost,
-      };
+        const duration = Date.now() - startTime;
+        const generatedText = completion.choices?.[0]?.message?.content || "";
 
-      // Log the request to database
-      await this.llmRepository.create({
-        model: this.model,
-        prompt: request.prompt,
-        response: generatedText,
-        tokens,
-        cost,
-        duration,
-        userId: request.userId,
-      });
+        // Calculate approximate token count (rough estimation)
+        const tokens = Math.ceil(generatedText.length / 4);
 
-      return {
-        success: true,
-        data: llmResponse,
-      };
-    } catch (error) {
-      console.error("LLM generation error:", error);
-      return {
-        success: false,
-        error: `Failed to generate text: ${error}`,
-      };
+        // Calculate cost (approximate for Llama 3.1 405B)
+        const cost = this.calculateCost(tokens);
+
+        const llmResponse: LLMResponse = {
+          text: generatedText.trim(),
+          tokens,
+          duration,
+          cost,
+          provider: provider.name,
+        };
+
+        // Update current provider on success
+        this.currentProvider = provider.name;
+
+        // Log the request to database
+        await this.llmRepository.create({
+          model: provider.model,
+          prompt: request.prompt,
+          response: generatedText,
+          tokens,
+          cost,
+          duration,
+          userId: request.userId,
+        });
+
+        console.log(`Successfully used provider: ${provider.name}`);
+        return {
+          success: true,
+          data: llmResponse,
+        };
+      } catch (error) {
+        console.warn(`Provider ${provider.name} failed:`, error);
+        lastError = error as Error;
+        continue; // Try next provider
+      }
     }
+
+    // All providers failed
+    console.error("All LLM providers failed:", lastError);
+    return {
+      success: false,
+      error: `Failed to generate text with any provider. Last error: ${lastError?.message}`,
+    };
   }
 
   public async generateConversationTitle(
     messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
     userId: string
   ): Promise<ServiceResponse<string>> {
-    try {
-      // Get user context if needed
-      const userContext = await this.getUserContext(userId);
+    let lastError: Error | null = null;
 
-      // Instruction prompt tailored for OSS models
-      const systemMessage = `
+    // Try each provider in order
+    for (const provider of this.providers) {
+      if (!provider.enabled) continue;
+
+      try {
+        console.log(
+          `Attempting to generate title with provider: ${provider.name}`
+        );
+
+        const client = this.createOpenAIClient(provider);
+
+        // Get user context if needed
+        const userContext = await this.getUserContext(userId);
+
+        // Instruction prompt tailored for OSS models
+        const systemMessage = `
   You are a title generator bot. Your only task is to return a short, clean title (max 40 characters) for a conversation based on recent messages. 
   Do not include explanations, quotes, or prefixes. Only return the title itself.
   Examples: "Blood Sugar Help", "Exercise Tips", "Medication Side Effects"
   `;
 
-      // Use the last few messages for better relevance
-      const titleMessages = [
-        {
-          role: "system" as const,
-          content: systemMessage.trim(),
-        },
-        ...messages.slice(-4),
-      ];
+        // Use the last few messages for better relevance
+        const titleMessages = [
+          {
+            role: "system" as const,
+            content: systemMessage.trim(),
+          },
+          ...messages.slice(-4),
+        ];
 
-      // Call the OSS GPT model
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: titleMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature: 0.2,
-        top_p: 0.7,
-        max_tokens: 16,
-      });
+        // Call the OSS GPT model
+        const response = await client.chat.completions.create({
+          model: provider.model,
+          messages: titleMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          temperature: 0.2,
+          top_p: 0.7,
+          max_tokens: 16,
+        });
 
-      const rawTitle =
-        response.choices[0]?.message?.content?.trim() || "New Chat";
+        const rawTitle =
+          response.choices[0]?.message?.content?.trim() || "New Chat";
 
-      // Clean up response: remove quotes and generic prefixes
-      let cleanTitle = rawTitle
-        .trim()
-        .replace(/^["']|["']$/g, "") // remove surrounding quotes
-        .replace(/^(title|analysis|generate|conversation)[\s:.-]*/i, "") // remove common bad prefixes
-        .replace(/^the user says[^.]*[.]\s*/i, "") // remove GPT echoes
-        .trim();
+        // Clean up response: remove quotes and generic prefixes
+        let cleanTitle = rawTitle
+          .trim()
+          .replace(/^["']|["']$/g, "") // remove surrounding quotes
+          .replace(/^(title|analysis|generate|conversation)[\s:.-]*/i, "") // remove common bad prefixes
+          .replace(/^the user says[^.]*[.]\s*/i, "") // remove GPT echoes
+          .trim();
 
-      // Truncate if too long
-      if (cleanTitle.length > 50) {
-        cleanTitle = cleanTitle.substring(0, 47) + "...";
+        // Truncate if too long
+        if (cleanTitle.length > 50) {
+          cleanTitle = cleanTitle.substring(0, 47) + "...";
+        }
+
+        console.log(
+          "🧠 Raw model response:",
+          JSON.stringify(response.choices[0]?.message?.content, null, 2)
+        );
+
+        // If it's bad or looks like analysis output, fall back
+        const isBadTitle =
+          cleanTitle.length < 3 ||
+          /analysis|user says|generate|conversation|system message|error/i.test(
+            cleanTitle
+          ) ||
+          !/[a-z]/i.test(cleanTitle); // avoids titles with only punctuation
+
+        if (isBadTitle) {
+          cleanTitle = "Health Discussion";
+        }
+
+        console.log(
+          `Successfully generated title with provider: ${provider.name}`
+        );
+        return {
+          success: true,
+          data: cleanTitle,
+          message: "Title generated successfully",
+        };
+      } catch (error) {
+        console.warn(
+          `Provider ${provider.name} failed for title generation:`,
+          error
+        );
+        lastError = error as Error;
+        continue; // Try next provider
       }
-
-      console.log(
-        "🧠 Raw model response:",
-        JSON.stringify(response.choices[0]?.message?.content, null, 2)
-      );
-
-      // If it's bad or looks like analysis output, fall back
-      const isBadTitle =
-        cleanTitle.length < 3 ||
-        /analysis|user says|generate|conversation|system message|error/i.test(
-          cleanTitle
-        ) ||
-        !/[a-z]/i.test(cleanTitle); // avoids titles with only punctuation
-
-      if (isBadTitle) {
-        cleanTitle = "Health Discussion";
-      }
-
-      return {
-        success: true,
-        data: cleanTitle,
-        message: "Title generated successfully",
-      };
-    } catch (error) {
-      console.error("Title generation error:", error);
-      return {
-        success: false,
-        error: `Failed to generate title: ${error}`,
-      };
     }
+
+    // All providers failed
+    console.error("All providers failed for title generation:", lastError);
+    return {
+      success: false,
+      error: `Failed to generate title with any provider. Last error: ${lastError?.message}`,
+    };
   }
 
   public async generateConversationResponse(
@@ -258,81 +519,139 @@ export class LLMService {
     userId: string,
     conversationId?: string
   ): Promise<ServiceResponse<LLMResponse>> {
-    try {
-      const startTime = Date.now();
+    const startTime = Date.now();
+    let lastError: Error | null = null;
 
-      // Get user context for personalized responses
-      const userContext = await this.getUserContext(userId);
+    // Try each provider in order
+    for (const provider of this.providers) {
+      if (!provider.enabled) continue;
 
-      // Create personalized system message
-      let systemMessage =
-        "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.";
+      try {
+        console.log(
+          `Attempting to generate conversation response with provider: ${provider.name}`
+        );
 
-      if (userContext) {
-        systemMessage += `\n\nIMPORTANT: Use this user's health information to provide personalized advice:\n${userContext}\n\nWhen giving advice, consider their specific diabetes type, medications, blood sugar targets, and dietary preferences. Always tailor your responses to their individual health profile while maintaining safety and encouraging them to consult their healthcare provider.`;
+        const client = this.createOpenAIClient(provider);
+
+        // Get user context for personalized responses
+        const userContext = await this.getUserContext(userId);
+
+        // Extract session memory from recent conversation messages
+        let sessionMemory = "";
+        try {
+          // Get the last few user messages (up to 3) to build better context
+          const recentUserMessages = messages
+            .filter((m) => m.role === "user")
+            .slice(-3);
+
+          const memoryParts: string[] = [];
+          for (const msg of recentUserMessages) {
+            const summary = this.memoryService.summarizeFromUtterance(
+              msg.content
+            );
+            if (summary) {
+              memoryParts.push(summary);
+            }
+          }
+
+          if (memoryParts.length > 0) {
+            sessionMemory = memoryParts.join("; ");
+          }
+        } catch (error) {
+          console.warn("Failed to extract session memory:", error);
+        }
+
+        // Create personalized system message
+        let systemMessage =
+          "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.";
+
+        if (userContext) {
+          systemMessage += `\n\nIMPORTANT: Use this user's health information to provide personalized advice:\n${userContext}\n\nWhen giving advice, consider their specific diabetes type, medications, blood sugar targets, and dietary preferences. Always tailor your responses to their individual health profile while maintaining safety and encouraging them to consult their healthcare provider.`;
+        }
+        if (sessionMemory) {
+          systemMessage += `\n\nSession Memory (from recent messages):\n${sessionMemory}`;
+        }
+
+        // Add instruction to use conversation history
+        systemMessage += `\n\nIMPORTANT: Pay attention to the conversation history below. When users ask about previous topics (like "what did I eat?" or "what did I tell you?"), refer to the earlier messages in this conversation to provide accurate responses.`;
+
+        // Ensure we have a system message
+        const formattedMessages =
+          messages.length > 0 && messages[0].role === "system"
+            ? messages
+            : [
+                {
+                  role: "system" as const,
+                  content: systemMessage,
+                },
+                ...messages,
+              ];
+
+        // Call OpenAI-compatible chat completions
+        const completion = await client.chat.completions.create({
+          model: provider.model,
+          messages: formattedMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 512,
+        });
+
+        const duration = Date.now() - startTime;
+        const generatedText = completion.choices?.[0]?.message?.content || "";
+        const tokens = Math.ceil(generatedText.length / 4);
+        const cost = this.calculateCost(tokens);
+
+        const llmResponse: LLMResponse = {
+          text: generatedText.trim(),
+          tokens,
+          duration,
+          cost,
+          provider: provider.name,
+        };
+
+        // Update current provider on success
+        this.currentProvider = provider.name;
+
+        // Log the request to database
+        const promptText = formattedMessages
+          .map((msg) => `${msg.role}: ${msg.content}`)
+          .join("\n");
+        await this.llmRepository.create({
+          model: provider.model,
+          prompt: promptText,
+          response: generatedText,
+          tokens,
+          cost,
+          duration,
+          userId,
+        });
+
+        console.log(
+          `Successfully generated conversation response with provider: ${provider.name}`
+        );
+        return {
+          success: true,
+          data: llmResponse,
+        };
+      } catch (error) {
+        console.warn(
+          `Provider ${provider.name} failed for conversation response:`,
+          error
+        );
+        lastError = error as Error;
+        continue; // Try next provider
       }
-
-      // Ensure we have a system message
-      const formattedMessages =
-        messages.length > 0 && messages[0].role === "system"
-          ? messages
-          : [
-              {
-                role: "system" as const,
-                content: systemMessage,
-              },
-              ...messages,
-            ];
-
-      // Call OpenAI-compatible chat completions
-      const completion = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: formattedMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature: 0.7,
-        top_p: 0.9,
-        max_tokens: 256,
-      });
-
-      const duration = Date.now() - startTime;
-      const generatedText = completion.choices?.[0]?.message?.content || "";
-      const tokens = Math.ceil(generatedText.length / 4);
-      const cost = this.calculateCost(tokens);
-
-      const llmResponse: LLMResponse = {
-        text: generatedText.trim(),
-        tokens,
-        duration,
-        cost,
-      };
-
-      // Log the request to database
-      const promptText = formattedMessages
-        .map((msg) => `${msg.role}: ${msg.content}`)
-        .join("\n");
-      await this.llmRepository.create({
-        model: this.model,
-        prompt: promptText,
-        response: generatedText,
-        tokens,
-        cost,
-        duration,
-        userId,
-      });
-
-      return {
-        success: true,
-        data: llmResponse,
-      };
-    } catch (error) {
-      console.error("LLM conversation error:", error);
-      return {
-        success: false,
-        error: `Failed to generate conversation response: ${error}`,
-      };
     }
+
+    // All providers failed
+    console.error("All providers failed for conversation response:", lastError);
+    return {
+      success: false,
+      error: `Failed to generate conversation response with any provider. Last error: ${lastError?.message}`,
+    };
   }
 
   public async *generateConversationResponseStream(
@@ -340,90 +659,156 @@ export class LLMService {
     userId: string,
     conversationId?: string
   ): AsyncGenerator<{ text: string; done: boolean }, void, unknown> {
-    try {
-      const startTime = Date.now();
+    const startTime = Date.now();
+    let lastError: Error | null = null;
 
-      // Get user context for personalized responses
-      const userContext = await this.getUserContext(userId);
+    // Try each provider in order
+    for (const provider of this.providers) {
+      if (!provider.enabled) continue;
 
-      // Create personalized system message
-      let systemMessage =
-        "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.";
+      try {
+        console.log(
+          `Attempting to stream conversation response with provider: ${provider.name}`
+        );
 
-      if (userContext) {
-        systemMessage += `\n\nIMPORTANT: Use this user's health information to provide personalized advice:\n${userContext}\n\nWhen giving advice, consider their specific diabetes type, medications, blood sugar targets, and dietary preferences. Always tailor your responses to their individual health profile while maintaining safety and encouraging them to consult their healthcare provider.`;
-      }
+        const client = this.createOpenAIClient(provider);
 
-      // Ensure we have a system message
-      const formattedMessages =
-        messages.length > 0 && messages[0].role === "system"
-          ? messages
-          : [
-              {
-                role: "system" as const,
-                content: systemMessage,
-              },
-              ...messages,
-            ];
+        // Get user context for personalized responses
+        const userContext = await this.getUserContext(userId);
 
-      // Call OpenAI-compatible chat completions with streaming
-      const stream = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: formattedMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature: 0.7,
-        top_p: 0.9,
-        max_tokens: 256,
-        stream: true,
-      });
+        // Extract session memory from recent conversation messages
+        let sessionMemory = "";
+        try {
+          // Get the last few user messages (up to 3) to build better context
+          const recentUserMessages = messages
+            .filter((m) => m.role === "user")
+            .slice(-3);
 
-      let fullText = "";
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        if (content) {
-          fullText += content;
-          yield { text: content, done: false };
+          const memoryParts: string[] = [];
+          for (const msg of recentUserMessages) {
+            const summary = this.memoryService.summarizeFromUtterance(
+              msg.content
+            );
+            if (summary) {
+              memoryParts.push(summary);
+            }
+          }
+
+          if (memoryParts.length > 0) {
+            sessionMemory = memoryParts.join("; ");
+          }
+        } catch (error) {
+          console.warn("Failed to extract session memory:", error);
         }
+
+        // Create personalized system message
+        let systemMessage =
+          "You are SantéAI, a safe, empathetic, and helpful assistant for diabetic patients. Your job is to speak naturally, like a caring human, without using any formatting or technical structures. Do not use tables, bold text, lists, bullet points, numbered lines, or any other markdown. Never use em dashes. Never structure information in columns or rows. Always speak in simple, plain sentences as if you were talking to a person in real life. Keep replies short and warm (2 to 3 sentences unless absolutely necessary). Start each conversation with a kind greeting. If a user mentions symptoms, respond with empathy and clear, easy-to-follow suggestions. If the symptoms might be urgent (like chest pain, fainting, severe headache, vision loss, or trouble breathing), advise the user to seek emergency medical care immediately. Do not diagnose or prescribe. Always include a reminder to consult a doctor when appropriate. Focus on safety, clarity, and emotional support.";
+
+        if (userContext) {
+          systemMessage += `\n\nIMPORTANT: Use this user's health information to provide personalized advice:\n${userContext}\n\nWhen giving advice, consider their specific diabetes type, medications, blood sugar targets, and dietary preferences. Always tailor your responses to their individual health profile while maintaining safety and encouraging them to consult their healthcare provider.`;
+        }
+        if (sessionMemory) {
+          systemMessage += `\n\nSession Memory (from recent messages):\n${sessionMemory}`;
+        }
+
+        // Add instruction to use conversation history
+        systemMessage += `\n\nIMPORTANT: Pay attention to the conversation history below. When users ask about previous topics (like "what did I eat?" or "what did I tell you?"), refer to the earlier messages in this conversation to provide accurate responses.`;
+
+        // Ensure we have a system message
+        const formattedMessages =
+          messages.length > 0 && messages[0].role === "system"
+            ? messages
+            : [
+                {
+                  role: "system" as const,
+                  content: systemMessage,
+                },
+                ...messages,
+              ];
+
+        // Call OpenAI-compatible chat completions with streaming
+        const stream = await client.chat.completions.create({
+          model: provider.model,
+          messages: formattedMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 512,
+          stream: true,
+        });
+
+        let fullText = "";
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          if (content) {
+            fullText += content;
+            yield { text: content, done: false };
+          }
+        }
+
+        // Update current provider on success
+        this.currentProvider = provider.name;
+
+        // Log the complete request to database
+        const duration = Date.now() - startTime;
+        const tokens = Math.ceil(fullText.length / 4);
+        const cost = this.calculateCost(tokens);
+
+        const promptText = formattedMessages
+          .map((msg) => `${msg.role}: ${msg.content}`)
+          .join("\n");
+        await this.llmRepository.create({
+          model: provider.model,
+          prompt: promptText,
+          response: fullText,
+          tokens,
+          cost,
+          duration,
+          userId,
+        });
+
+        console.log(
+          `Successfully streamed conversation response with provider: ${provider.name}`
+        );
+        yield { text: "", done: true };
+        return; // Success, exit the generator
+      } catch (error) {
+        console.warn(`Provider ${provider.name} failed for streaming:`, error);
+        lastError = error as Error;
+        continue; // Try next provider
       }
-
-      // Log the complete request to database
-      const duration = Date.now() - startTime;
-      const tokens = Math.ceil(fullText.length / 4);
-      const cost = this.calculateCost(tokens);
-
-      const promptText = formattedMessages
-        .map((msg) => `${msg.role}: ${msg.content}`)
-        .join("\n");
-      await this.llmRepository.create({
-        model: this.model,
-        prompt: promptText,
-        response: fullText,
-        tokens,
-        cost,
-        duration,
-        userId,
-      });
-
-      yield { text: "", done: true };
-    } catch (error) {
-      console.error("LLM streaming error:", error);
-      throw error;
     }
+
+    // All providers failed
+    console.error("All providers failed for streaming:", lastError);
+    throw new Error(
+      `Failed to generate streaming response with any provider. Last error: ${lastError?.message}`
+    );
   }
 
   public async getModelInfo(): Promise<ServiceResponse<any>> {
     try {
-      // Return static model information since modelInfo is not available
+      const currentProvider = this.getProvider(this.currentProvider);
+      if (!currentProvider) {
+        return {
+          success: false,
+          error: "No active provider available",
+        };
+      }
+
       return {
         success: true,
         data: {
-          id: this.model,
-          name: this.model,
-          description: "Meta Llama 3.1 405B Instruct model for text generation",
-          provider: "Hugging Face",
+          id: currentProvider.model,
+          name: currentProvider.model,
+          description: `Text generation model via ${currentProvider.name}`,
+          provider: currentProvider.name,
           capabilities: ["text-generation", "conversational-ai"],
+          baseURL: currentProvider.baseURL,
+          enabled: currentProvider.enabled,
         },
       };
     } catch (error) {
@@ -476,6 +861,72 @@ export class LLMService {
       return {
         success: false,
         error: `Failed to get recent requests: ${error}`,
+      };
+    }
+  }
+
+  public async getProviderStatus(): Promise<ServiceResponse<any>> {
+    try {
+      const status = await Promise.all(
+        this.providers.map(async (provider) => {
+          const isAvailable = await this.testProvider(provider);
+          return {
+            name: provider.name,
+            enabled: provider.enabled,
+            available: isAvailable,
+            baseURL: provider.baseURL,
+            model: provider.model,
+          };
+        })
+      );
+
+      return {
+        success: true,
+        data: {
+          providers: status,
+          currentProvider: this.currentProvider,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to get provider status: ${error}`,
+      };
+    }
+  }
+
+  public async switchProvider(
+    providerName: LLMProvider
+  ): Promise<ServiceResponse<boolean>> {
+    try {
+      const provider = this.getProvider(providerName);
+      if (!provider) {
+        return {
+          success: false,
+          error: `Provider ${providerName} not found or not enabled`,
+        };
+      }
+
+      const isAvailable = await this.testProvider(provider);
+      if (!isAvailable) {
+        return {
+          success: false,
+          error: `Provider ${providerName} is not available`,
+        };
+      }
+
+      this.currentProvider = providerName;
+      console.log(`Switched to provider: ${providerName}`);
+
+      return {
+        success: true,
+        data: true,
+        message: `Successfully switched to ${providerName}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to switch provider: ${error}`,
       };
     }
   }

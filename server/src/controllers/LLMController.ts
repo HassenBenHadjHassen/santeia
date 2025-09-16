@@ -89,6 +89,44 @@ export class LLMController extends BaseController {
     });
   };
 
+  public getProviderStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const result = await this.llmService.getProviderStatus();
+      this.sendServiceResponse(res, result);
+    });
+  };
+
+  public switchProvider = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const { provider } = req.body;
+
+      if (!provider) {
+        this.sendError(res, "Provider name is required", 400);
+        return;
+      }
+
+      if (!["huggingface", "ollama"].includes(provider)) {
+        this.sendError(
+          res,
+          "Invalid provider. Must be 'huggingface' or 'ollama'",
+          400
+        );
+        return;
+      }
+
+      const result = await this.llmService.switchProvider(provider);
+      this.sendServiceResponse(res, result);
+    });
+  };
+
   // Abstract methods from BaseController (not used in this controller)
   public create = async (
     req: Request,

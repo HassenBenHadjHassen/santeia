@@ -17,10 +17,15 @@ const startServer = async (): Promise<void> => {
 
     // Start HTTP server
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on ${HOST}`);
+      const protocol = config.NODE_ENV === "production" ? "https" : "http";
+      const hostDisplay =
+        config.NODE_ENV === "development" ? `${HOST}:${PORT}` : HOST;
+      const fullUrl = `${protocol}://${hostDisplay}`;
+
+      console.log(`🚀 Server running on ${fullUrl}`);
       console.log(`📊 Environment: ${config.NODE_ENV}`);
-      console.log(`🔗 API Documentation: ${HOST}/api`);
-      console.log(`❤️  Health Check: ${HOST}/api/health`);
+      console.log(`🔗 API Documentation: ${fullUrl}/api`);
+      console.log(`❤️  Health Check: ${fullUrl}/api/health`);
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);

@@ -1,237 +1,338 @@
-# API Service Documentation
+# API Services Usage Guide
 
-This directory contains a comprehensive API service that centralizes all API communications for the SantéAI application.
+This guide shows how to use all the available API services in the SanteIA application.
 
-## Structure
-
-```
-client/lib/api/
-├── index.ts              # Main API service and exports
-├── client.ts             # Base API client with error handling and retry logic
-├── types.ts              # TypeScript types and interfaces
-├── services/
-│   ├── userService.ts    # User-related API calls
-│   ├── conversationService.ts # Conversation-related API calls
-│   └── llmService.ts     # LLM-related API calls
-├── examples/
-│   └── chatExample.ts    # Usage examples
-└── README.md             # This documentation
-```
-
-## Quick Start
+## Importing Services
 
 ```typescript
-import { api } from "./lib/api";
+import {
+  api,
+  bloodSugarService,
+  mealService,
+  physicalActivityService,
+  medicationService,
+  healthMetricService,
+  alertService,
+} from "lib/api";
+```
 
-// Login user
-const authResponse = await api.users.login({
-  email: "user@example.com",
-  password: "password123",
-});
+## Authentication
 
-// Create a conversation
-const conversation = await api.conversations.createConversation(
+All services require a JWT token for authentication. Get the token from your auth context:
+
+```typescript
+import { useAuth } from "lib/auth-context";
+
+const { user } = useAuth();
+const token = authService.getToken(); // or however you get your token
+```
+
+## Blood Sugar Service
+
+Track blood sugar readings with comprehensive filtering and statistics.
+
+```typescript
+// Create a blood sugar reading
+const reading = await bloodSugarService.createReading(
   {
-    title: "Health Consultation",
-    initialMessage: "I have a headache",
+    value: 120,
+    unit: "mg/dL",
+    readingType: "fasting",
+    notes: "Before breakfast",
   },
-  authResponse.token
+  token
 );
 
-// Send a message
-const message = await api.conversations.sendMessage(
+// Get readings with filters
+const readings = await bloodSugarService.getReadings(
   {
-    content: "What should I do?",
-    conversationId: conversation.id,
+    readingType: "fasting",
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-31"),
   },
-  authResponse.token
+  { page: 1, limit: 10 },
+  token
 );
 
-// Get AI response
-const aiResponse = await api.llm.generateConversationResponse(
-  "What should I do?",
-  conversation.id,
-  authResponse.token
-);
-```
-
-## Services
-
-### UserService
-
-Handles all user-related operations:
-
-```typescript
-// Authentication
-await api.users.login(credentials);
-await api.users.signup(credentials);
-
-// User management
-await api.users.getUserById(id, token);
-await api.users.getAllUsers(filters, pagination, token);
-await api.users.updateUser(id, userData, token);
-await api.users.deleteUser(id, token);
-
-// Health check
-await api.users.healthCheck();
-```
-
-### ConversationService
-
-Manages conversations and messages:
-
-```typescript
-// Conversation CRUD
-await api.conversations.createConversation(data, token);
-await api.conversations.getConversationById(id, token);
-await api.conversations.getAllConversations(filters, pagination, token);
-await api.conversations.updateConversation(id, data, token);
-await api.conversations.deleteConversation(id, token);
-
-// Message operations
-await api.conversations.sendMessage(messageData, token);
-
-// User-specific operations
-await api.conversations.getUserConversations(userId, pagination, token);
-await api.conversations.searchConversations(searchTerm, pagination, token);
-```
-
-### LLMService
-
-Handles AI/LLM operations:
-
-```typescript
-// General text generation
-await api.llm.generateText(request, token);
-
-// Specialized methods
-await api.llm.generateHealthAdvice(prompt, conversationId, token);
-await api.llm.generateConversationResponse(message, conversationId, token);
-await api.llm.generateSummary(text, token);
-
-// Model information
-await api.llm.getModelInfo(token);
-```
-
-## Error Handling
-
-The API service includes comprehensive error handling:
-
-```typescript
-import { ApiError } from "./lib/api";
-
-try {
-  const response = await api.users.login(credentials);
-} catch (error) {
-  if (error instanceof ApiError) {
-    console.error("API Error:", error.message);
-    console.error("Status Code:", error.statusCode);
-    console.error("Error Code:", error.code);
-  } else {
-    console.error("Unexpected error:", error);
-  }
-}
-```
-
-## Configuration
-
-The API service is configured with sensible defaults:
-
-- **Base URL**: Automatically switches between development and production
-- **Timeout**: 15 seconds
-- **Retries**: 3 attempts with exponential backoff
-- **Retry Delay**: 1 second base delay
-
-You can customize these settings by modifying the configuration in `index.ts`.
-
-## Type Safety
-
-All API calls are fully typed with TypeScript:
-
-```typescript
-// Fully typed response
-const user: User = await api.users.getUserById(id, token);
-
-// Typed request parameters
-const conversation = await api.conversations.createConversation(
+// Get statistics
+const stats = await bloodSugarService.getStatistics(
   {
-    title: "My Health Chat", // string
-    initialMessage: "Hello", // string | undefined
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-31"),
   },
   token
 );
 ```
 
-## Authentication
+## Meal Service
 
-The API service handles authentication tokens automatically when provided:
+Track meals and nutritional information.
 
 ```typescript
-// Pass token explicitly
-await api.users.getUserById(id, token);
+// Create a meal
+const meal = await mealService.createMeal(
+  {
+    name: "Grilled Chicken Salad",
+    mealType: "lunch",
+    calories: 350,
+    carbohydrates: 25,
+    proteins: 30,
+    fats: 15,
+    timestamp: new Date(),
+  },
+  token
+);
 
-// Or use the auth service integration
-import { authService } from "../auth";
-const token = authService.getToken();
-await api.conversations.getAllConversations({}, {}, token);
+// Get meals by type
+const breakfasts = await mealService.getMeals(
+  {
+    mealType: "breakfast",
+    startDate: new Date("2024-01-01"),
+  },
+  { page: 1, limit: 20 },
+  token
+);
+
+// Get meal statistics
+const mealStats = await mealService.getStatistics(
+  {
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-31"),
+  },
+  token
+);
 ```
 
-## Examples
+## Physical Activity Service
 
-See `examples/chatExample.ts` for comprehensive usage examples including:
-
-- Creating and managing conversations
-- Sending messages with AI responses
-- Searching conversation history
-- Getting health advice
-- Error handling patterns
-
-## Integration with Existing Code
-
-The API service is designed to work seamlessly with the existing authentication system:
+Track physical activities and exercise.
 
 ```typescript
-// In your components
-import { useAuth } from "../lib/auth-context";
-import { api } from "../lib/api";
+// Log a workout
+const activity = await physicalActivityService.createActivity(
+  {
+    name: "Morning Run",
+    activityType: "cardio",
+    duration: 30,
+    intensity: "moderate",
+    caloriesBurned: 300,
+    distance: 5.2,
+  },
+  token
+);
 
-function ChatComponent() {
-  const { user } = useAuth();
-  const token = authService.getToken();
+// Get activities by type
+const cardioActivities = await physicalActivityService.getActivities(
+  {
+    activityType: "cardio",
+    startDate: new Date("2024-01-01"),
+  },
+  { page: 1, limit: 10 },
+  token
+);
 
-  const handleSendMessage = async (content: string) => {
-    try {
-      const message = await api.conversations.sendMessage(
-        {
-          content,
-          conversationId: currentConversation.id,
-        },
-        token
-      );
+// Get activity statistics
+const activityStats = await physicalActivityService.getStatistics(
+  {
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-31"),
+  },
+  token
+);
+```
 
-      // Handle success
-    } catch (error) {
-      // Handle error
-    }
-  };
+## Medication Service
+
+Manage medications and track doses.
+
+```typescript
+// Add a medication
+const medication = await medicationService.createMedication(
+  {
+    name: "Metformin",
+    type: "oral",
+    dosage: "500",
+    unit: "mg",
+    frequency: "daily",
+    timesPerDay: 2,
+    specificTimes: ["08:00", "20:00"],
+    startDate: new Date(),
+  },
+  token
+);
+
+// Log a dose
+const dose = await medicationService.logDose(
+  {
+    medicationId: medication.data.id,
+    dosage: "500",
+    unit: "mg",
+    takenAt: new Date(),
+  },
+  token
+);
+
+// Get medications
+const medications = await medicationService.getMedications(
+  {
+    isActive: true,
+  },
+  { page: 1, limit: 10 },
+  token
+);
+
+// Get medication statistics
+const medStats = await medicationService.getStatistics({}, token);
+```
+
+## Health Metrics Service
+
+Track various health metrics like weight, blood pressure, etc.
+
+```typescript
+// Record weight
+const weight = await healthMetricService.createMetric(
+  {
+    type: "weight",
+    value: "70.5",
+    unit: "kg",
+    timestamp: new Date(),
+  },
+  token
+);
+
+// Record blood pressure
+const bp = await healthMetricService.createMetric(
+  {
+    type: "blood_pressure",
+    value: "120/80",
+    unit: "mmHg",
+    additionalData: { systolic: 120, diastolic: 80 },
+  },
+  token
+);
+
+// Get metrics by type
+const weightHistory = await healthMetricService.getMetricsByType(
+  "weight",
+  { startDate: new Date("2024-01-01") },
+  { page: 1, limit: 30 },
+  token
+);
+
+// Get latest metrics
+const latestMetrics = await healthMetricService.getLatestMetrics(
+  ["weight", "blood_pressure"],
+  token
+);
+```
+
+## Alert Service
+
+Manage health alerts and reminders.
+
+```typescript
+// Create a general alert
+const alert = await alertService.createAlert(
+  {
+    type: "GENERAL_HEALTH",
+    title: "Check Blood Sugar",
+    message: "Time to check your blood sugar levels",
+    priority: "medium",
+  },
+  token
+);
+
+// Create a blood sugar alert
+const bsAlert = await alertService.createBloodSugarAlert(
+  {
+    isHigh: true,
+    value: 180,
+    targetRange: { min: 80, max: 120 },
+  },
+  token
+);
+
+// Get unread alerts
+const unreadAlerts = await alertService.getUnreadAlerts(token);
+
+// Mark alert as read
+await alertService.markAsRead(alert.data.id, token);
+
+// Get alert statistics
+const alertStats = await alertService.getAlertCounts(token);
+```
+
+## Using the Main API Class
+
+You can also use the main `api` class which provides access to all services:
+
+```typescript
+// Using the main API class
+const bloodSugarReadings = await api.bloodSugar.getReadings({}, {}, token);
+const meals = await api.meals.getMeals({}, {}, token);
+const activities = await api.physicalActivities.getActivities({}, {}, token);
+const medications = await api.medications.getMedications({}, {}, token);
+const healthMetrics = await api.healthMetrics.getMetrics({}, {}, token);
+const alerts = await api.alerts.getAlerts({}, {}, token);
+```
+
+## Error Handling
+
+All services return a `ServiceResponse<T>` which includes success status and error information:
+
+```typescript
+const result = await bloodSugarService.createReading(data, token);
+
+if (result.success) {
+  console.log("Reading created:", result.data);
+} else {
+  console.error("Error:", result.error);
 }
 ```
 
-## Best Practices
+## Pagination
 
-1. **Always handle errors**: Wrap API calls in try-catch blocks
-2. **Use TypeScript**: Leverage the full type safety
-3. **Pass tokens explicitly**: For better control over authentication
-4. **Use pagination**: For large data sets
-5. **Implement loading states**: Show users when requests are in progress
-6. **Cache responses**: When appropriate to reduce API calls
+Most list endpoints support pagination:
 
-## Development
+```typescript
+const pagination = {
+  page: 1,
+  limit: 10,
+  sortBy: "createdAt",
+  sortOrder: "desc" as const,
+};
 
-To add new API endpoints:
+const readings = await bloodSugarService.getReadings({}, pagination, token);
+```
 
-1. Add types to `types.ts`
-2. Create or update service classes in `services/`
-3. Export new services from `index.ts`
-4. Add usage examples to `examples/`
-5. Update this documentation
+## Filtering
+
+Most services support various filters:
+
+```typescript
+// Blood sugar filters
+const filters = {
+  readingType: "fasting",
+  startDate: new Date("2024-01-01"),
+  endDate: new Date("2024-01-31"),
+  minValue: 80,
+  maxValue: 120,
+};
+
+// Meal filters
+const mealFilters = {
+  mealType: "breakfast",
+  startDate: new Date("2024-01-01"),
+  minCalories: 200,
+};
+
+// Activity filters
+const activityFilters = {
+  activityType: "cardio",
+  intensity: "moderate",
+  startDate: new Date("2024-01-01"),
+};
+```
+
+This comprehensive API service structure allows you to easily integrate all health tracking features into your components without manually handling API calls.

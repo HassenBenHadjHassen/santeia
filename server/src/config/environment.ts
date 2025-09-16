@@ -25,6 +25,11 @@ const envSchema = Joi.object({
   OPENAI_BASE_URL: Joi.string().default("https://router.huggingface.co/v1"),
   OPENAI_MODEL: Joi.string().default("HuggingFaceH4/zephyr-7b-beta"),
 
+  // Ollama configuration (fallback)
+  OLLAMA_BASE_URL: Joi.string().default("http://localhost:11434"),
+  OLLAMA_MODEL: Joi.string().default("llama3.1:8b"),
+  OLLAMA_ENABLED: Joi.boolean().default(true),
+
   // JWT configuration
   JWT_SECRET: Joi.string().required(),
   JWT_EXPIRES_IN: Joi.string().default("24h"),
@@ -59,6 +64,11 @@ export const config = {
 
   // OpenAI-compatible
   OPENAI_BASE_URL: envVars.OPENAI_BASE_URL,
+
+  // Ollama
+  OLLAMA_BASE_URL: envVars.OLLAMA_BASE_URL,
+  OLLAMA_MODEL: envVars.OLLAMA_MODEL,
+  OLLAMA_ENABLED: envVars.OLLAMA_ENABLED,
 
   // JWT
   JWT_SECRET: envVars.JWT_SECRET,

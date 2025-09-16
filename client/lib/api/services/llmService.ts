@@ -25,7 +25,7 @@ export class LLMService {
         "/llm/generate",
         {
           method: "POST",
-          body: JSON.stringify(request),
+          data: request,
         },
         token
       );

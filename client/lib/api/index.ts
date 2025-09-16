@@ -3,6 +3,12 @@ import { ApiClient } from "./client";
 import { UserService } from "./services/userService";
 import { ConversationService } from "./services/conversationService";
 import { LLMService } from "./services/llmService";
+import { BloodSugarService } from "./services/bloodSugarService";
+import { MealService } from "./services/mealService";
+import { PhysicalActivityService } from "./services/physicalActivityService";
+import { MedicationService } from "./services/medicationService";
+import { HealthMetricService } from "./services/healthMetricService";
+import { AlertService } from "./services/alertService";
 import type { RequestConfig } from "./types";
 
 // API Configuration
@@ -21,6 +27,12 @@ const apiClient = new ApiClient(API_BASE_URL, defaultConfig);
 export const userService = new UserService(apiClient);
 export const conversationService = new ConversationService(apiClient);
 export const llmService = new LLMService(apiClient);
+export const bloodSugarService = new BloodSugarService(apiClient);
+export const mealService = new MealService(apiClient);
+export const physicalActivityService = new PhysicalActivityService(apiClient);
+export const medicationService = new MedicationService(apiClient);
+export const healthMetricService = new HealthMetricService(apiClient);
+export const alertService = new AlertService(apiClient);
 
 // Export the API client for direct use if needed
 export { apiClient };
@@ -32,12 +44,24 @@ export * from "./types";
 export { UserService } from "./services/userService";
 export { ConversationService } from "./services/conversationService";
 export { LLMService } from "./services/llmService";
+export { BloodSugarService } from "./services/bloodSugarService";
+export { MealService } from "./services/mealService";
+export { PhysicalActivityService } from "./services/physicalActivityService";
+export { MedicationService } from "./services/medicationService";
+export { HealthMetricService } from "./services/healthMetricService";
+export { AlertService } from "./services/alertService";
 
 // Main API class that provides access to all services
 export class ApiService {
   public users: UserService;
   public conversations: ConversationService;
   public llm: LLMService;
+  public bloodSugar: BloodSugarService;
+  public meals: MealService;
+  public physicalActivities: PhysicalActivityService;
+  public medications: MedicationService;
+  public healthMetrics: HealthMetricService;
+  public alerts: AlertService;
   public client: ApiClient;
 
   constructor() {
@@ -45,6 +69,12 @@ export class ApiService {
     this.users = userService;
     this.conversations = conversationService;
     this.llm = llmService;
+    this.bloodSugar = bloodSugarService;
+    this.meals = mealService;
+    this.physicalActivities = physicalActivityService;
+    this.medications = medicationService;
+    this.healthMetrics = healthMetricService;
+    this.alerts = alertService;
   }
 
   // Health check for all services

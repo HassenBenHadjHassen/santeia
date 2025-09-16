@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "components/ui/button";
-import { MobileMenu } from "./mobile-menu";
-import { Heart, User, ChevronDown, LogOut, UserCircle } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import {
+  Heart,
+  User,
+  ChevronDown,
+  LogOut,
+  UserCircle,
+  Menu,
+} from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router";
 import { Avatar, AvatarFallback } from "components/ui/avatar";
 import { useAuth } from "../../lib/auth-context";
 
@@ -20,6 +26,8 @@ interface HeaderProps {
   onNew?: () => void;
   onDelete?: (conversationId: string) => void;
   isLoading?: boolean;
+  showChatSidebar?: boolean;
+  onMobileMenuToggle?: () => void;
 }
 
 export function Header({
@@ -30,10 +38,59 @@ export function Header({
   onNew,
   onDelete,
   isLoading,
+  showChatSidebar = false,
+  onMobileMenuToggle,
 }: HeaderProps) {
   const { user: authUser, logout } = useAuth();
+  const [theme, setTheme] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+      ? "dark"
+      : (localStorage.getItem("theme") as "light" | "dark") || "light"
+  );
   const navigate = useNavigate();
+  const location = useLocation();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  // Get current page name for display
+  const getPageName = () => {
+    const path = location.pathname;
+    switch (path) {
+      case "/":
+        return {
+          name: "Dashboard",
+          description: "Overview of your health data",
+        };
+      case "/diary":
+        return {
+          name: "Health Diary",
+          description: "Log meals, activities, and symptoms",
+        };
+      case "/medications":
+        return { name: "Medications", description: "Manage your medications" };
+      case "/chat":
+        return { name: "Chat", description: "Chat with your health assistant" };
+      case "/export":
+        return {
+          name: "Export Data",
+          description: "Download your health reports",
+        };
+      case "/profile":
+        return { name: "Profile", description: "Manage your account settings" };
+      case "/onboarding":
+        return {
+          name: "Health Setup",
+          description: "Complete your health profile",
+        };
+      default:
+        return {
+          name: "SantéAI",
+          description: "Your personal health assistant",
+        };
+    }
+  };
+
+  const currentPage = getPageName();
 
   // Close profile menu when clicking outside
   useEffect(() => {
@@ -64,118 +121,179 @@ export function Header({
 
   const currentUser = authUser || user;
 
+  // Sync theme to html class & localStorage
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/40">
-      <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
-        {/* Left: SantéAI Logo & Mobile Menu */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            to="/"
-            className="flex items-center gap-1.5 sm:gap-2 rounded-full px-2 sm:px-3 py-1.5 hover:bg-accent transition"
-          >
-            <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <span className="text-sm sm:text-base font-semibold tracking-tight">
-              SantéAI
-            </span>
-          </Link>
-          <MobileMenu
-            conversations={conversations}
-            activeId={activeId}
-            onSelect={onSelect}
-            onNew={onNew}
-            onDelete={onDelete}
-            isLoading={isLoading}
-          />
-        </div>
+    <>
+      <header className="sticky top-0 z-30 w-full border-b border-border/50 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+          {/* Left: Mobile Menu Button & SantéAI Logo */}
+          <div className="flex items-center gap-3">
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={onMobileMenuToggle}
+              data-mobile-sidebar-trigger
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
 
-        {/* Center: Page Name - Hidden on mobile, visible on tablet+ */}
-        <div className="hidden md:flex flex-1 justify-center">
-          <div className="text-center">
-            <h1 className="text-lg font-semibold text-foreground">Chat</h1>
-            <p className="text-xs text-muted-foreground">
-              Ask me anything about your health
-            </p>
+            {/* Logo */}
+            <Link
+              to="/"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50 transition-colors"
+            >
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Heart className="h-4 w-4 text-primary" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-lg font-bold">SantéAI</span>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Health Assistant
+                </p>
+              </div>
+            </Link>
           </div>
-        </div>
 
-        {/* Right: Profile Menu or Auth Buttons */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {currentUser ? (
-            <div className="relative" data-profile-menu>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleProfileMenuToggle}
-                className="flex items-center gap-1 sm:gap-2 rounded-full px-2 sm:px-3"
+          {/* Center: Page Name - Hidden on mobile, visible on tablet+ */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <div className="text-center">
+              <h1 className="text-lg font-semibold text-foreground">
+                {currentPage.name}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {currentPage.description}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Theme + Profile */}
+          <div className="flex items-center gap-2">
+            {/* Theme Switcher */}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Toggle theme"
+              onClick={toggleTheme}
+              className="rounded-lg hover:bg-accent/50 relative"
+            >
+              {/* Sun */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className={`h-5 w-5 text-yellow-500 transition-all duration-300 ${
+                  theme === "dark"
+                    ? "scale-0 rotate-90 opacity-0"
+                    : "scale-100 opacity-100"
+                }`}
               >
-                <Avatar className="h-6 w-6 sm:h-7 sm:w-7">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                    {currentUser.name ? (
-                      currentUser.name.charAt(0).toUpperCase()
-                    ) : (
-                      <User className="h-3 w-3" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden lg:inline text-sm font-medium">
-                  {currentUser.name || "User"}
-                </span>
-                <ChevronDown className="h-3 w-3 hidden sm:block" />
-              </Button>
-
-              {isProfileMenuOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 w-44 sm:w-48 bg-background border border-border rounded-lg shadow-lg z-50 bg-black"
+                <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm10 7h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM3 12H2a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2Zm15.07 7.07a1 1 0 0 1-1.41 1.41l-.71-.7a1 1 0 1 1 1.41-1.42l.71.71Zm-12.02 0 .71-.71a1 1 0 1 1 1.41 1.42l-.71.7a1 1 0 1 1-1.41-1.41ZM17.66 5.64a1 1 0 0 1 0 1.41l-.71.71a1 1 0 0 1-1.41-1.41l.71-.71a1 1 0 0 1 1.41 0ZM6.05 5.64l.71.71A1 1 0 1 1 5.35 7.77l-.71-.71A1 1 0 1 1 6.05 5.64Z" />
+              </svg>
+              {/* Moon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className={`absolute h-5 w-5 text-gray-500 transition-all duration-300 ${
+                  theme === "dark"
+                    ? "scale-100 opacity-100"
+                    : "scale-0 -rotate-90 opacity-0"
+                }`}
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+              </svg>
+            </Button>
+            {currentUser ? (
+              <div className="relative" data-profile-menu>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleProfileMenuToggle}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent/50"
                 >
-                  <div className="p-2">
-                    <div className="px-3 py-2 border-b border-border">
-                      <p className="text-sm font-medium truncate">
-                        {currentUser.name || "User"}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {currentUser.email}
-                      </p>
-                    </div>
-                    <div className="py-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleViewProfile}
-                        className="w-full justify-start rounded-md text-sm"
-                      >
-                        <UserCircle className="h-4 w-4 mr-2" />
-                        View Profile
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleLogout}
-                        className="w-full justify-start rounded-md text-sm text-destructive hover:text-destructive"
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </Button>
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                      {currentUser.name ? (
+                        currentUser.name.charAt(0).toUpperCase()
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:block text-left">
+                    <span className="text-sm font-medium block">
+                      {currentUser.name || "User"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {currentUser.email}
+                    </span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 hidden sm:block" />
+                </Button>
+
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-popover/95 border border-border/50 rounded-xl shadow-xl z-50 backdrop-blur-sm">
+                    <div className="p-3">
+                      <div className="px-3 py-2 border-b border-border/50 mb-2">
+                        <p className="text-sm font-medium truncate">
+                          {currentUser.name || "User"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {currentUser.email}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleViewProfile}
+                          className="w-full justify-start rounded-lg text-sm h-9"
+                        >
+                          <UserCircle className="h-4 w-4 mr-3" />
+                          View Profile
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleLogout}
+                          className="w-full justify-start rounded-lg text-sm h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <LogOut className="h-4 w-4 mr-3" />
+                          Logout
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Button
-                variant="ghost"
-                asChild
-                className="rounded-full text-sm px-2 sm:px-3"
-              >
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button asChild className="rounded-full text-sm px-2 sm:px-3">
-                <Link to="/signup">Sign up</Link>
-              </Button>
-            </div>
-          )}
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="rounded-lg text-sm px-4 py-2"
+                >
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button asChild className="rounded-lg text-sm px-4 py-2">
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

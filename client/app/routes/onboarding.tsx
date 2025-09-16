@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "components/ui/button";
 import { Input } from "components/ui/input";
+import { ProtectedRoute } from "../../components/auth/protected-route";
 import {
   Card,
   CardContent,
@@ -229,22 +230,6 @@ export default function Onboarding() {
       };
     });
   };
-
-  // Redirect to login if not authenticated
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">Please sign in</h2>
-          <p className="text-muted-foreground mb-4">
-            You need to be signed in to complete onboarding.
-          </p>
-          <Button onClick={() => navigate("/login")}>Go to Login</Button>
-        </div>
-      </div>
-    );
-  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -653,70 +638,80 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Heart className="h-6 w-6 text-primary" />
-                <CardTitle>SantéAI Setup</CardTitle>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
+        <div className="container mx-auto px-4 max-w-2xl">
+          {/* Header with back button */}
+          <div className="mb-6">
+            <div className="flex items-center gap-4 mb-4"></div>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-6 w-6 text-primary" />
+                  <CardTitle>SantéAI Setup</CardTitle>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Step {currentStep + 1} of {steps.length}
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                Step {currentStep + 1} of {steps.length}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${((currentStep + 1) / steps.length) * 100}%`,
-                }}
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  {error}
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${((currentStep + 1) / steps.length) * 100}%`,
+                  }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">
+                  {steps[currentStep].title}
+                </h2>
+                <p className="text-muted-foreground">
+                  {steps[currentStep].description}
                 </p>
               </div>
-            )}
 
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-2">
-                {steps[currentStep].title}
-              </h2>
-              <p className="text-muted-foreground">
-                {steps[currentStep].description}
-              </p>
-            </div>
+              {renderStepContent()}
 
-            {renderStepContent()}
-
-            <div className="flex justify-between mt-8">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <Button onClick={handleNext} disabled={!canProceed() || isSaving}>
-                {isSaving
-                  ? "Saving..."
-                  : currentStep === steps.length - 1
-                  ? "Complete Setup"
-                  : "Next"}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex justify-between mt-8">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 0}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed() || isSaving}
+                >
+                  {isSaving
+                    ? "Saving..."
+                    : currentStep === steps.length - 1
+                    ? "Complete Setup"
+                    : "Next"}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

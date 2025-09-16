@@ -20,4 +20,8 @@ router.get("/model-info", llmController.getModelInfo);
 router.get("/usage-stats/:userId", llmController.getUsageStats);
 router.get("/recent-requests/:userId", llmController.getRecentRequests);
 
+// Provider management routes
+router.get("/providers/status", llmController.getProviderStatus);
+router.post("/providers/switch", llmController.switchProvider);
+
 export default router;

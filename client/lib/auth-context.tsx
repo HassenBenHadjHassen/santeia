@@ -127,6 +127,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authService.logout();
     setUser(null);
     setError(null);
+    // Force a re-render to ensure ProtectedRoute picks up the change
+    setIsLoading(false);
   };
 
   const updateProfile = async (profileData: UpdateProfileRequest) => {

@@ -11,6 +11,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { AuthProvider } from "../lib/auth-context";
+import { HydrateFallback as LoadingFallback } from "../components/ui/loading-spinner";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -21,7 +22,7 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap",
   },
 ];
 
@@ -34,7 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="font-sans">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -52,6 +53,16 @@ export default function App() {
         </main>
       </div>
     </AuthProvider>
+  );
+}
+
+export function HydrateFallback() {
+  return (
+    <LoadingFallback
+      title="Loading SantéAI..."
+      description="Setting up your health assistant"
+      showSkeleton={true}
+    />
   );
 }
 

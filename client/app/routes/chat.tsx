@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ChatInterface } from "../../components/chat/chat-interface";
-import { Sidebar } from "../../components/layout/sidebar";
-import { Header } from "../../components/layout/header";
+import { MainLayout } from "../../components/layout/main-layout";
 import { ProtectedRoute } from "../../components/auth/protected-route";
 import { useAuth } from "../../lib/auth-context";
 import { conversationService } from "../../lib/api";
 import { authService } from "../../lib/auth";
 import { safeParseDate } from "../../lib/utils";
 import type { Message as ApiMessage, Conversation } from "../../lib/api/types";
+import type { Route } from "./+types/chat";
 
 // Local Message interface that matches ChatInterface expectations
 interface Message {
@@ -37,16 +37,51 @@ export function meta() {
   ];
 }
 
+export async function clientLoader() {
+  // Pre-load conversations for better UX
+  const token = authService.getToken();
+  if (!token) {
+    return { conversations: [], currentConversation: null };
+  }
+
+  try {
+    const conversations = await conversationService.getAllConversations(
+      { userId: "current" }, // This will be resolved by the service
+      { page: 1, limit: 50, sortBy: "updatedAt", sortOrder: "desc" },
+      token
+    );
+
+    // Sort client-side as fallback
+    conversations.sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+
+    return {
+      conversations,
+      currentConversation: conversations.length > 0 ? conversations[0] : null,
+    };
+  } catch (error) {
+    console.error("Failed to pre-load conversations:", error);
+    return { conversations: [], currentConversation: null };
+  }
+}
+
+// Mark the clientLoader to run during hydration
+clientLoader.hydrate = true;
+
 // Message interface is now imported from API types
 
-export default function Chat() {
+export default function Chat({ loaderData }: Route.ComponentProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>(
+    loaderData?.conversations || []
+  );
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isFetchingConversation, setIsFetchingConversation] = useState(false);
   const [currentConversation, setCurrentConversation] =
-    useState<Conversation | null>(null);
+    useState<Conversation | null>(loaderData?.currentConversation || null);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -91,9 +126,15 @@ export default function Chat() {
   }, []);
 
   // Fetch conversations for the user and select the most recent
+  // Only run if we don't have pre-loaded data from clientLoader
   useEffect(() => {
     const fetchConversations = async () => {
-      if (!user) return;
+      if (
+        !user ||
+        (loaderData?.conversations && loaderData.conversations.length > 0)
+      )
+        return;
+
       try {
         setIsLoadingConversations(true);
         const token = authService.getToken();
@@ -121,7 +162,7 @@ export default function Chat() {
     };
     fetchConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, loaderData]);
 
   const handleSendMessage = async (content: string) => {
     if (!user) {
@@ -164,19 +205,7 @@ export default function Chat() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => {
-      const newMessages = [...prev, tempUserMessage];
-      // Trigger scroll after state update
-      setTimeout(() => {
-        const scrollArea = document.querySelector(
-          "[data-radix-scroll-area-viewport]"
-        );
-        if (scrollArea) {
-          scrollArea.scrollTop = scrollArea.scrollHeight;
-        }
-      }, 0);
-      return newMessages;
-    });
+    setMessages((prev) => [...prev, tempUserMessage]);
 
     try {
       setError(null);
@@ -218,16 +247,6 @@ export default function Chat() {
               };
               newMessages.push(tempAiMessage);
             }
-
-            // Auto-scroll during streaming
-            setTimeout(() => {
-              const scrollArea = document.querySelector(
-                "[data-radix-scroll-area-viewport]"
-              );
-              if (scrollArea) {
-                scrollArea.scrollTop = scrollArea.scrollHeight;
-              }
-            }, 0);
 
             return newMessages;
           });
@@ -299,6 +318,7 @@ export default function Chat() {
                 );
                 return [updatedConversation, ...others];
               });
+              // Hint now comes from SSE memory_saved event; no-op here
             } catch (err) {
               console.error("Failed to reload conversation:", err);
             }
@@ -361,88 +381,60 @@ export default function Chat() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-gradient-to-b from-muted/50 via-background to-background">
-        {/* Sidebar - Hidden on mobile, visible on desktop */}
-        <div className="hidden lg:flex lg:w-72 lg:flex-col border-r bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
-          <div className="flex flex-col flex-grow pt-4 overflow-y-auto">
-            <div className="flex flex-col flex-grow px-4">
-              <Sidebar
-                conversations={conversations.map((c) => ({
-                  id: c.id,
-                  title: c.title,
-                  updatedAt: c.updatedAt,
-                }))}
-                activeId={currentConversation?.id || null}
-                onSelect={handleSelectConversation}
-                onNew={handleNewConversation}
-                onDelete={handleDeleteConversation}
-                isLoading={isLoadingConversations}
-              />
-            </div>
+      <MainLayout
+        user={user ? { name: user.name, email: user.email } : undefined}
+        conversations={conversations.map((c) => ({
+          id: c.id,
+          title: c.title,
+          updatedAt: c.updatedAt,
+        }))}
+        activeConversationId={currentConversation?.id || null}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
+        isLoadingConversations={isLoadingConversations}
+        showChatFeatures={true}
+        maxWidth="full"
+        padding="lg"
+        centered={false}
+        className="h-full flex flex-col"
+      >
+        {/* Header */}
+        <div className="mb-6 flex-shrink-0">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              {currentConversation?.title || "New Chat"}
+            </h1>
+            <p className="text-muted-foreground">
+              Ask anything about your health. This is not medical advice.
+            </p>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
-          <Header
-            user={user ? { name: user.name, email: user.email } : undefined}
-            conversations={conversations.map((c) => ({
-              id: c.id,
-              title: c.title,
-              updatedAt: c.updatedAt,
-            }))}
-            activeId={currentConversation?.id || null}
-            onSelect={handleSelectConversation}
-            onNew={handleNewConversation}
-            onDelete={handleDeleteConversation}
-            isLoading={isLoadingConversations}
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg flex-shrink-0">
+            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-500 hover:text-red-700 text-sm underline mt-1"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Chat Interface Container */}
+        <div className="h-[calc(100vh-16rem)]">
+          <ChatInterface
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            userName={user?.name || "You"}
+            isFetchingConversation={isFetchingConversation}
           />
-
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full flex flex-col">
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 mx-3 mt-2 rounded-md">
-                  <p className="text-sm">{error}</p>
-                  <button
-                    onClick={() => setError(null)}
-                    className="text-red-500 hover:text-red-700 text-sm underline mt-1"
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              )}
-
-              {/* Chat Header */}
-              <div className="px-3 py-3 border-b bg-background/50">
-                <div className="max-w-4xl mx-auto">
-                  <h1 className="text-base sm:text-lg font-semibold tracking-tight truncate">
-                    {currentConversation?.title || "New Chat"}
-                  </h1>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ask anything about your health. This is not medical advice.
-                  </p>
-                </div>
-              </div>
-
-              {/* Chat Interface Container */}
-              <div className="flex-1 overflow-hidden px-3 py-3">
-                <div className="max-w-4xl mx-auto h-full">
-                  <div className="rounded-xl border bg-background shadow-sm overflow-hidden h-full">
-                    <ChatInterface
-                      messages={messages}
-                      onSendMessage={handleSendMessage}
-                      isLoading={isLoading}
-                      userName={user?.name || "You"}
-                      isFetchingConversation={isFetchingConversation}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

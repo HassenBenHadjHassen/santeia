@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Heart, Bot, User, Mic, Sparkles } from "lucide-react";
 import { ScrollArea } from "components/ui/scroll-area";
 import { cn } from "lib/utils";
@@ -42,33 +40,48 @@ export function ChatInterface({
   const [supportsSpeech, setSupportsSpeech] = useState(false);
 
   // Function to scroll to bottom
-  const scrollToBottom = () => {
-    requestAnimationFrame(() => {
-      const el = scrollAreaRef.current;
-      if (el) {
-        el.scrollTop = el.scrollHeight;
-      }
-    });
+  const scrollToBottom = useCallback(() => {
+    // Find the actual scrollable viewport element
+    const findScrollableViewport = () => {
+      if (!scrollAreaRef.current) return null;
 
-    setTimeout(() => {
-      const el = scrollAreaRef.current;
+      // Try to find the Radix ScrollArea viewport
+      const viewport = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      ) as HTMLElement;
+      if (viewport) return viewport;
+
+      // Fallback to the scroll area ref itself
+      return scrollAreaRef.current;
+    };
+
+    const scrollToBottomElement = () => {
+      const el = findScrollableViewport();
       if (el) {
         el.scrollTop = el.scrollHeight;
       }
-    }, 50);
-  };
+    };
+
+    // Use multiple approaches to ensure scrolling works
+    requestAnimationFrame(scrollToBottomElement);
+    setTimeout(scrollToBottomElement, 10);
+    setTimeout(scrollToBottomElement, 50);
+    setTimeout(scrollToBottomElement, 100);
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
 
   // Auto-scroll during streaming
   useEffect(() => {
     if (isLoading) {
       scrollToBottom();
     }
-  }, [isLoading]);
+  }, [isLoading, scrollToBottom]);
 
   // Expose scroll function to parent
   useEffect(() => {
@@ -77,24 +90,27 @@ export function ChatInterface({
     }
   }, [onScrollToBottom]);
 
-  // Scroll to bottom on initial load
+  // Initialize component on mount
   useEffect(() => {
-    // Small delay to ensure the component is fully rendered
-    const timer = setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Detect Web Speech API support
-  useEffect(() => {
+    // Detect Web Speech API support
     if (typeof window !== "undefined") {
       const SR: any =
         (window as any).SpeechRecognition ||
         (window as any).webkitSpeechRecognition;
       setSupportsSpeech(!!SR);
     }
-  }, []);
+
+    // Multiple attempts to ensure scrolling works after component mount
+    const timer1 = setTimeout(() => scrollToBottom(), 50);
+    const timer2 = setTimeout(() => scrollToBottom(), 150);
+    const timer3 = setTimeout(() => scrollToBottom(), 300);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [scrollToBottom]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,38 +215,6 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b p-3 sm:p-4 bg-secondary/30">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold tracking-tight truncate">
-                SantéAI
-              </h2>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Your personal health assistant
-              </p>
-            </div>
-          </div>
-          <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <div className="flex items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
-              <div className="h-2 w-2 bg-emerald-500 rounded-full"></div>
-              <span className="hidden sm:inline">Online</span>
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="rounded-full hidden md:inline-flex"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              New insight
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Messages Area */}
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-3 md:p-4">
         <div className="space-y-4 md:space-y-5">

@@ -17,6 +17,7 @@ model User {
   role      Role     @default(USER)
   isActive  Boolean  @default(true)
   password  String?
+  dateOfBirth String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -30,8 +31,16 @@ model User {
   emergencyContact    Json?
 
   // Relations
-  conversations Conversation[]
-  messages      Message[]
+  conversations      Conversation[]
+  messages           Message[]
+  bloodSugarReadings BloodSugarReading[]
+  meals              Meal[]
+  physicalActivities PhysicalActivity[]
+  medications        Medication[]
+  medicationDoses    MedicationDose[]
+  healthMetrics      HealthMetric[]
+  alerts             Alert[]
+  conversationalMemories ConversationalMemory[]
 
   @@map("users")
 }
@@ -79,6 +88,146 @@ model LLMRequest {
   @@map("llm_requests")
 }
 
+model BloodSugarReading {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  value       Float    // Blood sugar value in mg/dL
+  unit        String   @default("mg/dL") // mg/dL or mmol/L
+  readingType ReadingType
+  notes       String?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("blood_sugar_readings")
+}
+
+model Meal {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  name        String
+  description String?
+  carbohydrates Float? // in grams
+  calories    Float?
+  protein     Float?   // in grams
+  fat         Float?   // in grams
+  fiber       Float?   // in grams
+  sugar       Float?   // in grams
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("meals")
+}
+
+model PhysicalActivity {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  activityType String
+  duration    Int      // in minutes
+  intensity   String   // low, moderate, high
+  caloriesBurned Float?
+  notes       String?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("physical_activities")
+}
+
+model Medication {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  name        String
+  type        String   // insulin, oral, other
+  dosage      String
+  unit        String   // units, mg, etc.
+  frequency   String   // daily, twice daily, etc.
+  instructions String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicationDoses MedicationDose[]
+
+  @@map("medications")
+}
+
+model MedicationDose {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  medicationId  String   @db.ObjectId
+  userId        String   @db.ObjectId
+  dosage        String
+  unit          String
+  takenAt       DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("medication_doses")
+}
+
+model HealthMetric {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  metricType  MetricType
+  value       Float
+  unit        String
+  notes       String?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("health_metrics")
+}
+
+model Alert {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  type        AlertType
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  priority    String   @default("medium") // low, medium, high, urgent
+  data        Json?    // Additional data for the alert
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+}
+
+model ConversationalMemory {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  factType     MemoryType
+  content      String   // The actual memory/fact
+  context      String?  // Optional context about when/how this was mentioned
+  relevanceScore Float? @default(1.0) // Score to prioritize which memories to include
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("conversational_memories")
+}
+
 enum Role {
   ADMIN
   USER
@@ -89,4 +238,48 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+enum ReadingType {
+  FASTING
+  BEFORE_MEAL
+  AFTER_MEAL
+  BEDTIME
+  RANDOM
+  POST_EXERCISE
+}
+
+enum MetricType {
+  WEIGHT
+  BLOOD_PRESSURE_SYSTOLIC
+  BLOOD_PRESSURE_DIASTOLIC
+  CHOLESTEROL_TOTAL
+  CHOLESTEROL_HDL
+  CHOLESTEROL_LDL
+  TRIGLYCERIDES
+  HEART_RATE
+  BMI
+}
+
+enum AlertType {
+  BLOOD_SUGAR_LOW
+  BLOOD_SUGAR_HIGH
+  MEDICATION_REMINDER
+  MEAL_REMINDER
+  EXERCISE_REMINDER
+  APPOINTMENT_REMINDER
+  GENERAL_HEALTH
+}
+
+enum MemoryType {
+  MEAL_PREFERENCE
+  FOOD_REACTION
+  SYMPTOM_PATTERN
+  ROUTINE_ACTIVITY
+  PERSONAL_PREFERENCE
+  HEALTH_GOAL
+  DIET_RESTRICTION
+  LIFESTYLE_FACT
+  FAMILY_HISTORY
+  GENERAL_FACT
 }
