@@ -20,6 +20,7 @@ model User {
   dateOfBirth String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  onboardingCompleted Boolean @default(false)
 
   // Onboarding data
   diabetesType        String?

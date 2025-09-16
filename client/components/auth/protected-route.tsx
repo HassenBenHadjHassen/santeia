@@ -1,16 +1,22 @@
 // Protected route component that requires authentication
 import { type ReactNode, useEffect } from "react";
 import { useAuth } from "../../lib/auth-context";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 
 interface ProtectedRouteProps {
   children: ReactNode;
   fallback?: ReactNode;
+  requireOnboarding?: boolean;
 }
 
-export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+export function ProtectedRoute({
+  children,
+  fallback,
+  requireOnboarding = true,
+}: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Redirect to login when not authenticated
   useEffect(() => {
@@ -18,6 +24,27 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
       navigate("/login", { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
+
+  // Redirect to onboarding if user is authenticated but hasn't completed onboarding
+  useEffect(() => {
+    if (
+      !isLoading &&
+      isAuthenticated &&
+      user &&
+      requireOnboarding &&
+      !user.onboardingCompleted &&
+      location.pathname !== "/onboarding"
+    ) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [
+    isAuthenticated,
+    isLoading,
+    user,
+    requireOnboarding,
+    navigate,
+    location.pathname,
+  ]);
 
   // Show loading state only while checking authentication
   if (isLoading) {

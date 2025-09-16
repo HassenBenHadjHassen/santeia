@@ -36,6 +36,7 @@ export interface User extends BaseEntity {
   role: "ADMIN" | "USER" | "MODERATOR";
   isActive: boolean;
   password: string | null;
+  onboardingCompleted: boolean;
   // Onboarding data
   dateOfBirth: string | null;
   diabetesType: string | null;

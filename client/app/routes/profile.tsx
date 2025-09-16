@@ -139,15 +139,15 @@ export default function Profile() {
           {/* Success/Error Messages */}
           {successMessage && (
             <div className="mb-6 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-800 dark:text-green-200">
+              <p className="text-sm text-green-800 dark:text-green-200 font-medium">
                 {successMessage}
               </p>
             </div>
           )}
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
@@ -181,7 +181,10 @@ export default function Profile() {
                 {isEditing ? (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label htmlFor="name" className="text-sm font-medium">
+                      <label
+                        htmlFor="name"
+                        className="text-sm font-medium text-foreground"
+                      >
                         Full Name
                       </label>
                       <Input
@@ -190,10 +193,14 @@ export default function Profile() {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="Enter your full name"
+                        className="border-border/60 focus:border-primary"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium">
+                      <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-foreground"
+                      >
                         Email Address
                       </label>
                       <Input
@@ -203,6 +210,7 @@ export default function Profile() {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="Enter your email"
+                        className="border-border/60 focus:border-primary"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -288,8 +296,8 @@ export default function Profile() {
                       <label className="text-sm font-medium text-muted-foreground">
                         Type of Diabetes
                       </label>
-                      <div className="p-3 bg-accent/50 rounded-lg border">
-                        <p className="text-sm font-medium">
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
                           {user!.diabetesType
                             ? formatDiabetesType(user!.diabetesType)
                             : "Not specified"}
@@ -300,8 +308,8 @@ export default function Profile() {
                       <label className="text-sm font-medium text-muted-foreground">
                         Diagnosis Date
                       </label>
-                      <div className="p-3 bg-accent/50 rounded-lg border">
-                        <p className="text-sm font-medium">
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
                           {user!.diagnosisDate || "Not specified"}
                         </p>
                       </div>
@@ -323,8 +331,8 @@ export default function Profile() {
                         <label className="text-sm font-medium text-muted-foreground">
                           Fasting (mg/dL)
                         </label>
-                        <div className="p-3 bg-accent/50 rounded-lg border">
-                          <p className="text-sm font-medium">
+                        <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                          <p className="text-sm font-medium text-foreground">
                             {user!.bloodSugarTargets.fasting || "Not set"}
                           </p>
                         </div>
@@ -333,8 +341,8 @@ export default function Profile() {
                         <label className="text-sm font-medium text-muted-foreground">
                           Before Meals (mg/dL)
                         </label>
-                        <div className="p-3 bg-accent/50 rounded-lg border">
-                          <p className="text-sm font-medium">
+                        <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                          <p className="text-sm font-medium text-foreground">
                             {user!.bloodSugarTargets.beforeMeals || "Not set"}
                           </p>
                         </div>
@@ -343,8 +351,8 @@ export default function Profile() {
                         <label className="text-sm font-medium text-muted-foreground">
                           After Meals (mg/dL)
                         </label>
-                        <div className="p-3 bg-accent/50 rounded-lg border">
-                          <p className="text-sm font-medium">
+                        <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                          <p className="text-sm font-medium text-foreground">
                             {user!.bloodSugarTargets.afterMeals || "Not set"}
                           </p>
                         </div>
@@ -353,8 +361,8 @@ export default function Profile() {
                         <label className="text-sm font-medium text-muted-foreground">
                           Bedtime (mg/dL)
                         </label>
-                        <div className="p-3 bg-accent/50 rounded-lg border">
-                          <p className="text-sm font-medium">
+                        <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                          <p className="text-sm font-medium text-foreground">
                             {user!.bloodSugarTargets.bedtime || "Not set"}
                           </p>
                         </div>
@@ -376,8 +384,8 @@ export default function Profile() {
                       <label className="text-sm font-medium text-muted-foreground">
                         Current Activity Level
                       </label>
-                      <div className="p-3 bg-accent/50 rounded-lg border">
-                        <p className="text-sm font-medium">
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
                           {formatActivityLevel(user!.activityLevel)}
                         </p>
                       </div>
@@ -399,7 +407,7 @@ export default function Profile() {
                         {user!.currentMedications.map((medication, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border"
+                            className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border border-border/60"
                           >
                             <div className="flex items-center gap-3">
                               <Pill className="h-4 w-4 text-muted-foreground" />
@@ -446,7 +454,7 @@ export default function Profile() {
                         </h4>
                       </div>
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border">
+                        <div className="flex items-center justify-between p-3 bg-accent/50 rounded-lg border border-border/60">
                           <div className="flex items-center gap-3">
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <div>

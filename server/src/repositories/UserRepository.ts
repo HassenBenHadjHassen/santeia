@@ -20,6 +20,7 @@ export class UserRepository extends BaseRepository<PrismaUser> {
           role: data.role || "USER",
           isActive: data.isActive ?? true,
           password: hashedPassword,
+          onboardingCompleted: data.onboardingCompleted ?? false,
           dateOfBirth: (data as any).dateOfBirth,
           diabetesType: data.diabetesType,
           diagnosisDate: data.diagnosisDate,

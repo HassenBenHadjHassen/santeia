@@ -34,6 +34,7 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  onboardingCompleted: boolean;
   // Onboarding data
   diabetesType?: string;
   diagnosisDate?: string;

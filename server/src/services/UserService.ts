@@ -239,6 +239,7 @@ export class UserService extends BaseService<IUser> {
         activityLevel: onboardingData.activityLevel,
         dietaryPreferences: onboardingData.dietaryPreferences,
         emergencyContact: onboardingData.emergencyContact,
+        onboardingCompleted: true,
       };
 
       // Update user with onboarding data

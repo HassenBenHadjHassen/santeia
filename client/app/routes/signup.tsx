@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "components/ui/card";
-import { Heart, Eye, EyeOff, Check } from "lucide-react";
+import { Heart, Eye, EyeOff, Check, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../lib/auth-context";
 
 export function meta() {
@@ -110,196 +110,266 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Heart className="h-12 w-12 text-primary" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Header */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Create your account
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Join SantéAI and start your personalized health journey
+            </p>
           </div>
-          <CardTitle className="text-2xl">Create your account</CardTitle>
-          <CardDescription>
-            Join SantéAI and start your personalized health journey
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(error || validationErrors.length > 0) && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              {validationErrors.map((err, index) => (
-                <p key={index} className="text-sm text-destructive">
-                  {err}
-                </p>
-              ))}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium">
-                  First Name
-                </label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  placeholder="John"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium">
-                  Last Name
-                </label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
+        </div>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="john@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+        <div className="max-w-md mx-auto">
+          <Card className="border-border/60 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-xl">Get Started</CardTitle>
+              <CardDescription>
+                Fill in your information to create your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {(error || validationErrors.length > 0) && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  {error && (
+                    <p className="text-sm text-destructive font-medium">
+                      {error}
+                    </p>
                   )}
-                </Button>
-              </div>
-
-              {formData.password && (
-                <div className="space-y-1">
-                  {passwordRequirements.map((req, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-2 text-xs"
-                    >
-                      <Check
-                        className={`h-3 w-3 ${
-                          req.met ? "text-green-500" : "text-gray-400"
-                        }`}
-                      />
-                      <span
-                        className={
-                          req.met ? "text-green-600" : "text-muted-foreground"
-                        }
-                      >
-                        {req.text}
-                      </span>
-                    </div>
+                  {validationErrors.map((err, index) => (
+                    <p key={index} className="text-sm text-destructive">
+                      {err}
+                    </p>
                   ))}
                 </div>
               )}
-            </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="firstName"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      First Name
+                    </label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      placeholder="John"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                      className="border-border/60 focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="lastName"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      Last Name
+                    </label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      placeholder="Doe"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                      className="border-border/60 focus:border-primary"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Email Address
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="border-border/60 focus:border-primary"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      className="border-border/60 focus:border-primary pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Password requirements:
+                      </p>
+                      <div className="space-y-1">
+                        {passwordRequirements.map((req, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2 text-xs"
+                          >
+                            <Check
+                              className={`h-3 w-3 ${
+                                req.met
+                                  ? "text-green-500"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                            <span
+                              className={
+                                req.met
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {req.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      className="border-border/60 focus:border-primary pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {formData.confirmPassword &&
+                    formData.password !== formData.confirmPassword && (
+                      <p className="text-xs text-destructive">
+                        Passwords don't match
+                      </p>
+                    )}
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <input
+                    id="agreeToTerms"
+                    name="agreeToTerms"
+                    type="checkbox"
+                    checked={formData.agreeToTerms}
+                    onChange={handleChange}
+                    className="mt-1 rounded border-border/60 focus:ring-primary focus:ring-2"
+                    required
+                  />
+                  <label
+                    htmlFor="agreeToTerms"
+                    className="text-sm text-muted-foreground leading-relaxed"
+                  >
+                    I agree to the{" "}
+                    <Link to="/terms" className="text-primary hover:underline">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-primary hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating account..." : "Create account"}
                 </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Already have an account?{" "}
+                  <Link
+                    to="/login"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign in
+                  </Link>
+                </p>
               </div>
-              {formData.confirmPassword &&
-                formData.password !== formData.confirmPassword && (
-                  <p className="text-xs text-destructive">
-                    Passwords don't match
-                  </p>
-                )}
-            </div>
-
-            <div className="flex items-start space-x-2">
-              <input
-                id="agreeToTerms"
-                name="agreeToTerms"
-                type="checkbox"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-                className="mt-1 rounded border-gray-300"
-                required
-              />
-              <label
-                htmlFor="agreeToTerms"
-                className="text-sm text-muted-foreground"
-              >
-                I agree to the terms
-              </label>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating account..." : "Create account"}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
