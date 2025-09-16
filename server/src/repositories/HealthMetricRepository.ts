@@ -23,7 +23,11 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       },
     });
 
-    return new HealthMetric(created);
+    return new HealthMetric({
+      ...created,
+      metricType: created.metricType as MetricType,
+      notes: created.notes === null ? undefined : created.notes,
+    });
   }
 
   public async findById(id: string): Promise<HealthMetric | null> {
@@ -31,7 +35,13 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       where: { id },
     });
 
-    return metric ? new HealthMetric(metric) : null;
+    return metric
+      ? new HealthMetric({
+          ...metric,
+          metricType: metric.metricType as MetricType,
+          notes: metric.notes === null ? undefined : metric.notes,
+        })
+      : null;
   }
 
   public async findAll(
@@ -53,7 +63,14 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return metrics.map((metric) => new HealthMetric(metric));
+    return metrics.map(
+      (metric) =>
+        new HealthMetric({
+          ...metric,
+          metricType: metric.metricType as MetricType,
+          notes: metric.notes === null ? undefined : metric.notes,
+        })
+    );
   }
 
   public async update(
@@ -64,11 +81,14 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       where: { id },
       data: {
         ...data,
-        updatedAt: new Date(),
       },
     });
 
-    return new HealthMetric(updated);
+    return new HealthMetric({
+      ...updated,
+      metricType: updated.metricType as MetricType,
+      notes: updated.notes === null ? undefined : updated.notes,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {
@@ -121,7 +141,13 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       orderBy: { timestamp: "desc" },
     });
 
-    return metric ? new HealthMetric(metric) : null;
+    return metric
+      ? new HealthMetric({
+          ...metric,
+          metricType: metric.metricType as MetricType,
+          notes: metric.notes === null ? undefined : metric.notes,
+        })
+      : null;
   }
 
   public async getMetricsByDay(
@@ -444,11 +470,11 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
 
     const latestSystolic = await this.getLatestMetric(
       userId,
-      "BLOOD_PRESSURE_SYSTOLIC"
+      MetricType.BLOOD_PRESSURE_SYSTOLIC
     );
     const latestDiastolic = await this.getLatestMetric(
       userId,
-      "BLOOD_PRESSURE_DIASTOLIC"
+      MetricType.BLOOD_PRESSURE_DIASTOLIC
     );
 
     return {
@@ -459,7 +485,7 @@ export class HealthMetricRepository extends BaseRepository<HealthMetric> {
       heartRateCount: categories.heartRate.length,
       bmiCount: categories.bmi.length,
       requiringAttention: requiringAttention.length,
-      latestWeight: await this.getLatestMetric(userId, "WEIGHT"),
+      latestWeight: await this.getLatestMetric(userId, MetricType.WEIGHT),
       latestBloodPressure: {
         systolic: latestSystolic,
         diastolic: latestDiastolic,

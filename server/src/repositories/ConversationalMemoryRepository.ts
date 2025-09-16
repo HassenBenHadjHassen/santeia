@@ -11,17 +11,47 @@ export interface CreateConversationalMemoryRequest {
 }
 
 export class ConversationalMemoryRepository extends BaseRepository<ConversationalMemory> {
-  
-  public async create(data: CreateConversationalMemoryRequest): Promise<ConversationalMemory> {
+  public async findById(id: string): Promise<ConversationalMemory | null> {
+    return this.handleDatabaseOperation(async () => {
+      return await this.prisma.conversationalMemory.findUnique({
+        where: { id },
+      });
+    });
+  }
+
+  public async findAll(
+    filters?: Record<string, any>
+  ): Promise<ConversationalMemory[]> {
+    return this.handleDatabaseOperation(async () => {
+      const where = this.buildWhereClause(filters || {});
+      return await this.prisma.conversationalMemory.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+      });
+    });
+  }
+
+  public async delete(id: string): Promise<boolean> {
+    return this.handleDatabaseOperation(async () => {
+      const result = await this.prisma.conversationalMemory.delete({
+        where: { id },
+      });
+      return !!result;
+    });
+  }
+
+  public async create(
+    data: CreateConversationalMemoryRequest
+  ): Promise<ConversationalMemory> {
     return this.handleDatabaseOperation(async () => {
       // Check if similar memory already exists
       const existing = await this.prisma.conversationalMemory.findFirst({
         where: {
           userId: data.userId,
           factType: data.factType,
-          content: { 
-            contains: data.content.substring(0, 20), 
-            mode: "insensitive" 
+          content: {
+            contains: data.content.substring(0, 20),
+            mode: "insensitive",
           },
           isActive: true,
         },
@@ -70,10 +100,7 @@ export class ConversationalMemoryRepository extends BaseRepository<Conversationa
 
       return await this.prisma.conversationalMemory.findMany({
         where: whereClause,
-        orderBy: [
-          { relevanceScore: "desc" },
-          { updatedAt: "desc" },
-        ],
+        orderBy: [{ relevanceScore: "desc" }, { updatedAt: "desc" }],
         take: limit,
       });
     });
@@ -92,23 +119,23 @@ export class ConversationalMemoryRepository extends BaseRepository<Conversationa
 
       // If query provided, search in content
       if (query && query.trim()) {
-        const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+        const searchTerms = query
+          .toLowerCase()
+          .split(" ")
+          .filter((term) => term.length > 2);
         if (searchTerms.length > 0) {
-          whereClause.OR = searchTerms.map(term => ({
+          whereClause.OR = searchTerms.map((term) => ({
             content: {
               contains: term,
-              mode: "insensitive"
-            }
+              mode: "insensitive",
+            },
           }));
         }
       }
 
       return await this.prisma.conversationalMemory.findMany({
         where: whereClause,
-        orderBy: [
-          { relevanceScore: "desc" },
-          { updatedAt: "desc" },
-        ],
+        orderBy: [{ relevanceScore: "desc" }, { updatedAt: "desc" }],
         take: limit,
       });
     });
@@ -116,17 +143,16 @@ export class ConversationalMemoryRepository extends BaseRepository<Conversationa
 
   public async update(
     id: string,
-    data: Partial<ConversationalMemory>,
-    userId: string
-  ): Promise<ConversationalMemory> {
+    data: Partial<ConversationalMemory>
+  ): Promise<ConversationalMemory | null> {
     return this.handleDatabaseOperation(async () => {
-      // Verify ownership
-      const memory = await this.prisma.conversationalMemory.findFirst({
-        where: { id, userId },
+      // Check if memory exists
+      const memory = await this.prisma.conversationalMemory.findUnique({
+        where: { id },
       });
-      
+
       if (!memory) {
-        throw new Error("Memory not found or access denied");
+        return null;
       }
 
       return await this.prisma.conversationalMemory.update({
@@ -184,15 +210,17 @@ export class ConversationalMemoryRepository extends BaseRepository<Conversationa
       const memoryTypeBreakdown: Record<string, number> = {};
       let totalRelevanceScore = 0;
 
-      memories.forEach(memory => {
-        memoryTypeBreakdown[memory.factType] = (memoryTypeBreakdown[memory.factType] || 0) + 1;
+      memories.forEach((memory) => {
+        memoryTypeBreakdown[memory.factType] =
+          (memoryTypeBreakdown[memory.factType] || 0) + 1;
         totalRelevanceScore += memory.relevanceScore || 1.0;
       });
 
       return {
         totalMemories,
         memoryTypeBreakdown,
-        avgRelevanceScore: totalMemories > 0 ? totalRelevanceScore / totalMemories : 0,
+        avgRelevanceScore:
+          totalMemories > 0 ? totalRelevanceScore / totalMemories : 0,
       };
     });
   }

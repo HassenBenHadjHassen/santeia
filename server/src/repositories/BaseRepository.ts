@@ -12,7 +12,7 @@ export abstract class BaseRepository<T> {
   public abstract create(data: Partial<T>): Promise<T>;
   public abstract findById(id: string): Promise<T | null>;
   public abstract findAll(filters?: Record<string, any>): Promise<T[]>;
-  public abstract update(id: string, data: Partial<T>): Promise<T>;
+  public abstract update(id: string, data: Partial<T>): Promise<T | null>;
   public abstract delete(id: string): Promise<boolean>;
 
   // Common utility methods

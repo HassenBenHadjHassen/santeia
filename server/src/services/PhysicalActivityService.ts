@@ -704,10 +704,12 @@ export class PhysicalActivityService {
           userId,
           new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
         ),
-        this.activityRepository.getTotalCaloriesBurnedByWeek(
-          userId,
-          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        ) / 7,
+        this.activityRepository
+          .getTotalCaloriesBurnedByWeek(
+            userId,
+            new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+          )
+          .then((calories) => calories / 7),
         this.activityRepository.getActivityFrequency(userId, days),
         this.activityRepository.getIntensityDistribution(userId, days),
         this.activityRepository.getWeeklyActivityGoal(userId, 150),

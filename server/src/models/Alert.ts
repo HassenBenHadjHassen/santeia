@@ -14,7 +14,7 @@ export class Alert extends BaseModel implements IAlert {
   constructor(data: Partial<IAlert> = {}) {
     super(data);
     this.userId = data.userId || "";
-    this.type = data.type || "GENERAL_HEALTH";
+    this.type = data.type || AlertType.GENERAL_HEALTH;
     this.title = data.title || "";
     this.message = data.message || "";
     this.isRead = data.isRead ?? false;

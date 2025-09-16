@@ -20,7 +20,8 @@ export class Medication extends BaseModel implements IMedication {
     this.dosage = data.dosage || "";
     this.unit = data.unit || "";
     this.frequency = data.frequency || "daily";
-    this.instructions = data.instructions;
+    this.instructions =
+      data.instructions === null ? undefined : data.instructions;
     this.isActive = data.isActive ?? true;
   }
 

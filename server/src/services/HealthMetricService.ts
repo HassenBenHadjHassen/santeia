@@ -613,11 +613,23 @@ export class HealthMetricService {
         bmiStats,
         metricsRequiringAttention,
       ] = await Promise.all([
-        this.healthMetricRepository.getMetricStats(userId, "WEIGHT", days),
+        this.healthMetricRepository.getMetricStats(
+          userId,
+          MetricType.WEIGHT,
+          days
+        ),
         this.healthMetricRepository.getBloodPressureHistory(userId, days),
         this.healthMetricRepository.getCholesterolHistory(userId, days),
-        this.healthMetricRepository.getMetricStats(userId, "HEART_RATE", days),
-        this.healthMetricRepository.getMetricStats(userId, "BMI", days),
+        this.healthMetricRepository.getMetricStats(
+          userId,
+          MetricType.HEART_RATE,
+          days
+        ),
+        this.healthMetricRepository.getMetricStats(
+          userId,
+          MetricType.BMI,
+          days
+        ),
         this.healthMetricRepository.getMetricsRequiringAttention(userId),
       ]);
 

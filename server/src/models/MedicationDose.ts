@@ -17,7 +17,7 @@ export class MedicationDose extends BaseModel implements IMedicationDose {
     this.dosage = data.dosage || "";
     this.unit = data.unit || "";
     this.takenAt = data.takenAt || new Date();
-    this.notes = data.notes;
+    this.notes = data.notes === null ? undefined : data.notes;
   }
 
   public validate(): boolean {

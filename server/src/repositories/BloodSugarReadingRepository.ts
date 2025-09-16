@@ -30,7 +30,11 @@ export class BloodSugarReadingRepository extends BaseRepository<BloodSugarReadin
       },
     });
 
-    return new BloodSugarReading(created);
+    return new BloodSugarReading({
+      ...created,
+      readingType: created.readingType as ReadingType,
+      notes: created.notes === null ? undefined : created.notes,
+    });
   }
 
   public async findById(id: string): Promise<BloodSugarReading | null> {
@@ -38,7 +42,13 @@ export class BloodSugarReadingRepository extends BaseRepository<BloodSugarReadin
       where: { id },
     });
 
-    return reading ? new BloodSugarReading(reading) : null;
+    return reading
+      ? new BloodSugarReading({
+          ...reading,
+          readingType: reading.readingType as ReadingType,
+          notes: reading.notes === null ? undefined : reading.notes,
+        })
+      : null;
   }
 
   public async findAll(
@@ -60,7 +70,14 @@ export class BloodSugarReadingRepository extends BaseRepository<BloodSugarReadin
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return readings.map((reading) => new BloodSugarReading(reading));
+    return readings.map(
+      (reading) =>
+        new BloodSugarReading({
+          ...reading,
+          readingType: reading.readingType as ReadingType,
+          notes: reading.notes === null ? undefined : reading.notes,
+        })
+    );
   }
 
   public async update(
@@ -71,11 +88,14 @@ export class BloodSugarReadingRepository extends BaseRepository<BloodSugarReadin
       where: { id },
       data: {
         ...data,
-        updatedAt: new Date(),
       },
     });
 
-    return new BloodSugarReading(updated);
+    return new BloodSugarReading({
+      ...updated,
+      readingType: updated.readingType as ReadingType,
+      notes: updated.notes === null ? undefined : updated.notes,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {
@@ -128,7 +148,13 @@ export class BloodSugarReadingRepository extends BaseRepository<BloodSugarReadin
       orderBy: { timestamp: "desc" },
     });
 
-    return reading ? new BloodSugarReading(reading) : null;
+    return reading
+      ? new BloodSugarReading({
+          ...reading,
+          readingType: reading.readingType as ReadingType,
+          notes: reading.notes === null ? undefined : reading.notes,
+        })
+      : null;
   }
 
   public async getStats(

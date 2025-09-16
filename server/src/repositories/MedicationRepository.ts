@@ -25,7 +25,11 @@ export class MedicationRepository extends BaseRepository<Medication> {
       },
     });
 
-    return new Medication(created);
+    return new Medication({
+      ...created,
+      instructions:
+        created.instructions === null ? undefined : created.instructions,
+    });
   }
 
   public async findById(id: string): Promise<Medication | null> {
@@ -33,7 +37,15 @@ export class MedicationRepository extends BaseRepository<Medication> {
       where: { id },
     });
 
-    return medication ? new Medication(medication) : null;
+    return medication
+      ? new Medication({
+          ...medication,
+          instructions:
+            medication.instructions === null
+              ? undefined
+              : medication.instructions,
+        })
+      : null;
   }
 
   public async findAll(
@@ -55,7 +67,16 @@ export class MedicationRepository extends BaseRepository<Medication> {
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return medications.map((medication) => new Medication(medication));
+    return medications.map(
+      (medication) =>
+        new Medication({
+          ...medication,
+          instructions:
+            medication.instructions === null
+              ? undefined
+              : medication.instructions,
+        })
+    );
   }
 
   public async update(
@@ -70,7 +91,11 @@ export class MedicationRepository extends BaseRepository<Medication> {
       },
     });
 
-    return new Medication(updated);
+    return new Medication({
+      ...updated,
+      instructions:
+        updated.instructions === null ? undefined : updated.instructions,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {
@@ -243,8 +268,8 @@ export class MedicationRepository extends BaseRepository<Medication> {
           isOverdue: nextDoseTime < now,
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => a!.nextDoseTime.getTime() - b!.nextDoseTime.getTime());
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => a.nextDoseTime.getTime() - b.nextDoseTime.getTime());
   }
 
   public async getOverdueDoses(userId: string): Promise<

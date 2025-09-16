@@ -24,7 +24,10 @@ export class AlertRepository extends BaseRepository<Alert> {
       },
     });
 
-    return new Alert(created);
+    return new Alert({
+      ...created,
+      type: created.type as AlertType,
+    });
   }
 
   public async findById(id: string): Promise<Alert | null> {
@@ -32,7 +35,12 @@ export class AlertRepository extends BaseRepository<Alert> {
       where: { id },
     });
 
-    return alert ? new Alert(alert) : null;
+    return alert
+      ? new Alert({
+          ...alert,
+          type: alert.type as AlertType,
+        })
+      : null;
   }
 
   public async findAll(
@@ -54,7 +62,13 @@ export class AlertRepository extends BaseRepository<Alert> {
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return alerts.map((alert) => new Alert(alert));
+    return alerts.map(
+      (alert) =>
+        new Alert({
+          ...alert,
+          type: alert.type as AlertType,
+        })
+    );
   }
 
   public async update(
@@ -65,11 +79,13 @@ export class AlertRepository extends BaseRepository<Alert> {
       where: { id },
       data: {
         ...data,
-        updatedAt: new Date(),
       },
     });
 
-    return new Alert(updated);
+    return new Alert({
+      ...updated,
+      type: updated.type as AlertType,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {
@@ -354,7 +370,7 @@ export class AlertRepository extends BaseRepository<Alert> {
   ): Promise<Alert> {
     const alert = new Alert({
       userId,
-      type: isHigh ? "BLOOD_SUGAR_HIGH" : "BLOOD_SUGAR_LOW",
+      type: isHigh ? AlertType.BLOOD_SUGAR_HIGH : AlertType.BLOOD_SUGAR_LOW,
       title: isHigh ? "High Blood Sugar Alert" : "Low Blood Sugar Alert",
       message: isHigh
         ? `Your blood sugar is ${value} mg/dL, which is above the target range of ${targetRange.min}-${targetRange.max} mg/dL. Please check with your healthcare provider.`
@@ -374,7 +390,7 @@ export class AlertRepository extends BaseRepository<Alert> {
   ): Promise<Alert> {
     const alert = new Alert({
       userId,
-      type: "MEDICATION_REMINDER",
+      type: AlertType.MEDICATION_REMINDER,
       title: "Medication Reminder",
       message: `Time to take your ${medicationName} (${dosage}).`,
       priority: "medium",
@@ -391,7 +407,7 @@ export class AlertRepository extends BaseRepository<Alert> {
   ): Promise<Alert> {
     const alert = new Alert({
       userId,
-      type: "MEAL_REMINDER",
+      type: AlertType.MEAL_REMINDER,
       title: `${mealType} Reminder`,
       message,
       priority: "low",

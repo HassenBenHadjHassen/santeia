@@ -15,8 +15,8 @@ export class BloodSugarReading extends BaseModel implements IBloodSugarReading {
     this.userId = data.userId || "";
     this.value = data.value || 0;
     this.unit = data.unit || "mg/dL";
-    this.readingType = data.readingType || "RANDOM";
-    this.notes = data.notes;
+    this.readingType = data.readingType || ReadingType.RANDOM;
+    this.notes = data.notes === null ? undefined : data.notes;
     this.timestamp = data.timestamp || new Date();
   }
 

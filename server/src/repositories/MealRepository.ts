@@ -27,7 +27,18 @@ export class MealRepository extends BaseRepository<Meal> {
       },
     });
 
-    return new Meal(created);
+    return new Meal({
+      ...created,
+      description:
+        created.description === null ? undefined : created.description,
+      carbohydrates:
+        created.carbohydrates === null ? undefined : created.carbohydrates,
+      calories: created.calories === null ? undefined : created.calories,
+      protein: created.protein === null ? undefined : created.protein,
+      fat: created.fat === null ? undefined : created.fat,
+      fiber: created.fiber === null ? undefined : created.fiber,
+      sugar: created.sugar === null ? undefined : created.sugar,
+    });
   }
 
   public async findById(id: string): Promise<Meal | null> {
@@ -35,7 +46,19 @@ export class MealRepository extends BaseRepository<Meal> {
       where: { id },
     });
 
-    return meal ? new Meal(meal) : null;
+    return meal
+      ? new Meal({
+          ...meal,
+          description: meal.description === null ? undefined : meal.description,
+          carbohydrates:
+            meal.carbohydrates === null ? undefined : meal.carbohydrates,
+          calories: meal.calories === null ? undefined : meal.calories,
+          protein: meal.protein === null ? undefined : meal.protein,
+          fat: meal.fat === null ? undefined : meal.fat,
+          fiber: meal.fiber === null ? undefined : meal.fiber,
+          sugar: meal.sugar === null ? undefined : meal.sugar,
+        })
+      : null;
   }
 
   public async findAll(
@@ -57,7 +80,20 @@ export class MealRepository extends BaseRepository<Meal> {
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return meals.map((meal) => new Meal(meal));
+    return meals.map(
+      (meal) =>
+        new Meal({
+          ...meal,
+          description: meal.description === null ? undefined : meal.description,
+          carbohydrates:
+            meal.carbohydrates === null ? undefined : meal.carbohydrates,
+          calories: meal.calories === null ? undefined : meal.calories,
+          protein: meal.protein === null ? undefined : meal.protein,
+          fat: meal.fat === null ? undefined : meal.fat,
+          fiber: meal.fiber === null ? undefined : meal.fiber,
+          sugar: meal.sugar === null ? undefined : meal.sugar,
+        })
+    );
   }
 
   public async update(id: string, data: Partial<IMeal>): Promise<Meal | null> {
@@ -65,11 +101,21 @@ export class MealRepository extends BaseRepository<Meal> {
       where: { id },
       data: {
         ...data,
-        updatedAt: new Date(),
       },
     });
 
-    return new Meal(updated);
+    return new Meal({
+      ...updated,
+      description:
+        updated.description === null ? undefined : updated.description,
+      carbohydrates:
+        updated.carbohydrates === null ? undefined : updated.carbohydrates,
+      calories: updated.calories === null ? undefined : updated.calories,
+      protein: updated.protein === null ? undefined : updated.protein,
+      fat: updated.fat === null ? undefined : updated.fat,
+      fiber: updated.fiber === null ? undefined : updated.fiber,
+      sugar: updated.sugar === null ? undefined : updated.sugar,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {

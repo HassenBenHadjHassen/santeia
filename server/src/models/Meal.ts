@@ -18,13 +18,14 @@ export class Meal extends BaseModel implements IMeal {
     super(data);
     this.userId = data.userId || "";
     this.name = data.name || "";
-    this.description = data.description;
-    this.carbohydrates = data.carbohydrates;
-    this.calories = data.calories;
-    this.protein = data.protein;
-    this.fat = data.fat;
-    this.fiber = data.fiber;
-    this.sugar = data.sugar;
+    this.description = data.description === null ? undefined : data.description;
+    this.carbohydrates =
+      data.carbohydrates === null ? undefined : data.carbohydrates;
+    this.calories = data.calories === null ? undefined : data.calories;
+    this.protein = data.protein === null ? undefined : data.protein;
+    this.fat = data.fat === null ? undefined : data.fat;
+    this.fiber = data.fiber === null ? undefined : data.fiber;
+    this.sugar = data.sugar === null ? undefined : data.sugar;
     this.timestamp = data.timestamp || new Date();
   }
 

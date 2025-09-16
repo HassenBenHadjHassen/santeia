@@ -8,7 +8,9 @@ export class User extends BaseModel implements IUser {
   public role: "ADMIN" | "USER" | "MODERATOR";
   public isActive: boolean;
   public password: string | null;
+  public onboardingCompleted: boolean;
   // Onboarding data
+  public dateOfBirth: string | null;
   public diabetesType: string | null;
   public diagnosisDate: string | null;
   public currentMedications: string[];
@@ -33,7 +35,9 @@ export class User extends BaseModel implements IUser {
     this.role = data.role || "USER";
     this.isActive = data.isActive ?? true;
     this.password = data.password ?? null;
+    this.onboardingCompleted = data.onboardingCompleted ?? false;
     // Initialize onboarding data
+    this.dateOfBirth = data.dateOfBirth ?? null;
     this.diabetesType = data.diabetesType ?? null;
     this.diagnosisDate = data.diagnosisDate ?? null;
     this.currentMedications = data.currentMedications ?? [];
@@ -61,6 +65,8 @@ export class User extends BaseModel implements IUser {
       role: this.role,
       isActive: this.isActive,
       password: this.password,
+      onboardingCompleted: this.onboardingCompleted,
+      dateOfBirth: this.dateOfBirth,
       diabetesType: this.diabetesType,
       diagnosisDate: this.diagnosisDate,
       currentMedications: this.currentMedications,
@@ -80,6 +86,9 @@ export class User extends BaseModel implements IUser {
     this.role = data.role || this.role;
     this.isActive = data.isActive ?? this.isActive;
     this.password = data.password ?? this.password;
+    this.onboardingCompleted =
+      data.onboardingCompleted ?? this.onboardingCompleted;
+    this.dateOfBirth = data.dateOfBirth ?? this.dateOfBirth;
     this.diabetesType = data.diabetesType ?? this.diabetesType;
     this.diagnosisDate = data.diagnosisDate ?? this.diagnosisDate;
     this.currentMedications =

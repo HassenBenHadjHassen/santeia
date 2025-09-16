@@ -23,7 +23,10 @@ export class MedicationDoseRepository extends BaseRepository<MedicationDose> {
       },
     });
 
-    return new MedicationDose(created);
+    return new MedicationDose({
+      ...created,
+      notes: created.notes === null ? undefined : created.notes,
+    });
   }
 
   public async findById(id: string): Promise<MedicationDose | null> {
@@ -31,7 +34,12 @@ export class MedicationDoseRepository extends BaseRepository<MedicationDose> {
       where: { id },
     });
 
-    return dose ? new MedicationDose(dose) : null;
+    return dose
+      ? new MedicationDose({
+          ...dose,
+          notes: dose.notes === null ? undefined : dose.notes,
+        })
+      : null;
   }
 
   public async findAll(
@@ -53,7 +61,13 @@ export class MedicationDoseRepository extends BaseRepository<MedicationDose> {
       orderBy: { [sortBy]: sortOrder },
     });
 
-    return doses.map((dose) => new MedicationDose(dose));
+    return doses.map(
+      (dose) =>
+        new MedicationDose({
+          ...dose,
+          notes: dose.notes === null ? undefined : dose.notes,
+        })
+    );
   }
 
   public async update(
@@ -64,11 +78,13 @@ export class MedicationDoseRepository extends BaseRepository<MedicationDose> {
       where: { id },
       data: {
         ...data,
-        updatedAt: new Date(),
       },
     });
 
-    return new MedicationDose(updated);
+    return new MedicationDose({
+      ...updated,
+      notes: updated.notes === null ? undefined : updated.notes,
+    });
   }
 
   public async delete(id: string): Promise<boolean> {

@@ -13,10 +13,10 @@ export class HealthMetric extends BaseModel implements IHealthMetric {
   constructor(data: Partial<IHealthMetric> = {}) {
     super(data);
     this.userId = data.userId || "";
-    this.metricType = data.metricType || "WEIGHT";
+    this.metricType = data.metricType || MetricType.WEIGHT;
     this.value = data.value || 0;
     this.unit = data.unit || "";
-    this.notes = data.notes;
+    this.notes = data.notes === null ? undefined : data.notes;
     this.timestamp = data.timestamp || new Date();
   }
 
