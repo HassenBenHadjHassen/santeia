@@ -4,7 +4,7 @@ import { User } from "@/types";
 import { BaseRepository } from "./BaseRepository";
 import bcrypt from "bcryptjs";
 
-export class UserRepository extends BaseRepository<PrismaUser> {
+export class UserRepository extends BaseRepository<User> {
   public async create(data: Partial<User>): Promise<User> {
     return this.handleDatabaseOperation(async () => {
       // Hash password if provided
@@ -71,7 +71,7 @@ export class UserRepository extends BaseRepository<PrismaUser> {
     });
   }
 
-  public async update(id: string, data: Partial<User>): Promise<User> {
+  public async update(id: string, data: Partial<User>): Promise<User | null> {
     return this.handleDatabaseOperation(async () => {
       // Hash password if provided
       let updateData: any = { ...data };
