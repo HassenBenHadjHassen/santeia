@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Heart, Bot, User, Mic, Sparkles } from "lucide-react";
+import {
+  Send,
+  Heart,
+  Bot,
+  User,
+  Mic,
+  Sparkles,
+  Activity,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
 import { ScrollArea } from "components/ui/scroll-area";
 import { cn } from "lib/utils";
 import { Avatar, AvatarFallback } from "components/ui/avatar";
@@ -25,6 +35,13 @@ interface ChatInterfaceProps {
   onScrollToBottom?: () => void;
 }
 
+interface PromptSuggestion {
+  id: string;
+  text: string;
+  icon: React.ReactNode;
+  category: "diagnosis" | "analysis" | "symptoms" | "lifestyle";
+}
+
 export function ChatInterface({
   messages = [],
   onSendMessage,
@@ -38,6 +55,59 @@ export function ChatInterface({
   const recognitionRef = useRef<any>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [supportsSpeech, setSupportsSpeech] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // Prompt suggestions for health-related queries
+  const promptSuggestions: PromptSuggestion[] = [
+    {
+      id: "diagnose-bp",
+      text: "Analyze my blood pressure readings and trends",
+      icon: <Activity className="h-4 w-4" />,
+      category: "diagnosis",
+    },
+    {
+      id: "diagnose-bs",
+      text: "Review my blood sugar patterns and control",
+      icon: <TrendingUp className="h-4 w-4" />,
+      category: "diagnosis",
+    },
+    {
+      id: "overall-health",
+      text: "Give me an overall health assessment",
+      icon: <Heart className="h-4 w-4" />,
+      category: "analysis",
+    },
+    {
+      id: "weight-trends",
+      text: "Analyze my weight trends and BMI changes",
+      icon: <TrendingUp className="h-4 w-4" />,
+      category: "analysis",
+    },
+    {
+      id: "symptoms-fatigue",
+      text: "I've been feeling tired lately, what could it mean?",
+      icon: <AlertCircle className="h-4 w-4" />,
+      category: "symptoms",
+    },
+    {
+      id: "symptoms-headache",
+      text: "I have frequent headaches, should I be concerned?",
+      icon: <AlertCircle className="h-4 w-4" />,
+      category: "symptoms",
+    },
+    {
+      id: "diet-advice",
+      text: "What dietary changes should I consider?",
+      icon: <Sparkles className="h-4 w-4" />,
+      category: "lifestyle",
+    },
+    {
+      id: "exercise-plan",
+      text: "Suggest an exercise plan for my health condition",
+      icon: <Activity className="h-4 w-4" />,
+      category: "lifestyle",
+    },
+  ];
 
   // Function to scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -117,6 +187,14 @@ export function ChatInterface({
     if (input.trim() && onSendMessage) {
       onSendMessage(input.trim());
       setInput("");
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: PromptSuggestion) => {
+    if (onSendMessage) {
+      onSendMessage(suggestion.text);
+      setShowSuggestions(false);
     }
   };
 
@@ -232,15 +310,49 @@ export function ChatInterface({
             </div>
           )}
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-center">
-              <Heart className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Welcome to SantéAI</h3>
-              <p className="text-muted-foreground max-w-md">
-                I'm here to help you with your health concerns. Please describe
-                any symptoms, ask questions about your health, or share
-                information about your lifestyle.
-              </p>
-              <div className="mt-4 p-3 bg-muted rounded-lg">
+            <div className="flex flex-col items-center justify-center text-center space-y-6">
+              <div>
+                <Heart className="h-12 w-12 text-muted-foreground mb-4 mx-auto" />
+                <h3 className="text-lg font-semibold mb-2">
+                  Welcome to SantéAI
+                </h3>
+                <p className="text-muted-foreground max-w-md">
+                  I'm here to help you with your health concerns. Please
+                  describe any symptoms, ask questions about your health, or
+                  share information about your lifestyle.
+                </p>
+              </div>
+
+              {showSuggestions && (
+                <div className="w-full max-w-2xl">
+                  <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                    Quick suggestions to get started:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {promptSuggestions.map((suggestion) => (
+                      <Button
+                        key={suggestion.id}
+                        variant="outline"
+                        size="sm"
+                        className="justify-start h-auto p-3 text-left hover:bg-accent/50 transition-colors"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        disabled={isLoading}
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <div className="flex-shrink-0 text-muted-foreground">
+                            {suggestion.icon}
+                          </div>
+                          <span className="text-sm text-wrap leading-relaxed">
+                            {suggestion.text}
+                          </span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 p-3 bg-muted rounded-lg max-w-md">
                 <p className="text-sm text-muted-foreground">
                   <strong>Remember:</strong> This conversation is for
                   informational purposes only. Always consult a healthcare
@@ -356,63 +468,100 @@ export function ChatInterface({
         </div>
       </ScrollArea>
 
-      <div className="border-t p-3 md:p-4 bg-background/60 backdrop-blur">
-        <form onSubmit={handleSubmit} className="flex items-end gap-2">
-          <div className="flex-1 min-w-0">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Describe your symptoms, ask health questions, or share your concerns..."
-              className="w-full min-h-[52px] md:min-h-[60px] max-h-[140px] resize-none rounded-2xl border-border/60 shadow-sm"
-              disabled={isLoading}
-            />
+      <div className="border-t bg-background/60 backdrop-blur">
+        {/* Floating suggestions when typing */}
+        {showSuggestions && messages.length > 0 && input.length === 0 && (
+          <div className="p-2 border-b border-border/30">
+            <div className="flex flex-wrap gap-1">
+              <span className="text-xs text-muted-foreground mr-2 py-1">
+                Quick questions:
+              </span>
+              {promptSuggestions.slice(0, 4).map((suggestion) => (
+                <Button
+                  key={suggestion.id}
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto py-1 px-2 text-xs hover:bg-accent/50"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  disabled={isLoading}
+                >
+                  {suggestion.icon}
+                  <span className="ml-1 truncate max-w-[120px]">
+                    {suggestion.text.length > 25
+                      ? suggestion.text.substring(0, 25) + "..."
+                      : suggestion.text}
+                  </span>
+                </Button>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {supportsSpeech && isRecording && (
-              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-accent border border-border/60">
-                <div className="relative h-6 w-6">
-                  <span className="absolute inset-0 rounded-full bg-primary/25 animate-ping"></span>
-                  <span
-                    className="absolute inset-0 rounded-full bg-primary/20 animate-ping"
-                    style={{ animationDelay: "0.2s" }}
-                  ></span>
-                  <span className="relative block h-6 w-6 rounded-full bg-primary"></span>
+        )}
+
+        <div className="p-3 md:p-4">
+          <form onSubmit={handleSubmit} className="flex items-end gap-2">
+            <div className="flex-1 min-w-0">
+              <Textarea
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (e.target.value.length > 0 && showSuggestions) {
+                    setShowSuggestions(false);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Describe your symptoms, ask health questions, or share your concerns..."
+                className="w-full min-h-[52px] md:min-h-[60px] max-h-[140px] resize-none rounded-2xl border-border/60 shadow-sm"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {supportsSpeech && isRecording && (
+                <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-accent border border-border/60">
+                  <div className="relative h-6 w-6">
+                    <span className="absolute inset-0 rounded-full bg-primary/25 animate-ping"></span>
+                    <span
+                      className="absolute inset-0 rounded-full bg-primary/20 animate-ping"
+                      style={{ animationDelay: "0.2s" }}
+                    ></span>
+                    <span className="relative block h-6 w-6 rounded-full bg-primary"></span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    Listening…
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  Listening…
-                </span>
-              </div>
-            )}
-            {supportsSpeech && (
+              )}
+              {supportsSpeech && (
+                <Button
+                  type="button"
+                  variant={isRecording ? "destructive" : "ghost"}
+                  size={isRecording ? "default" : "icon"}
+                  className="rounded-full"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  aria-label={
+                    isRecording ? "Stop recording" : "Start recording"
+                  }
+                >
+                  {isRecording ? (
+                    <span className="px-1">Stop</span>
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
               <Button
-                type="button"
-                variant={isRecording ? "destructive" : "ghost"}
-                size={isRecording ? "default" : "icon"}
-                className="rounded-full"
-                onClick={isRecording ? stopRecording : startRecording}
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
+                type="submit"
+                size="icon"
+                disabled={!input.trim() || isLoading}
+                className="shrink-0 rounded-full"
               >
-                {isRecording ? (
-                  <span className="px-1">Stop</span>
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
+                <Send className="h-4 w-4" />
               </Button>
-            )}
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!input.trim() || isLoading}
-              className="shrink-0 rounded-full"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
-        <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send, Shift+Enter for new line
-        </p>
+            </div>
+          </form>
+          <p className="text-xs text-muted-foreground mt-2">
+            Press Enter to send, Shift+Enter for new line
+          </p>
+        </div>
       </div>
     </div>
   );

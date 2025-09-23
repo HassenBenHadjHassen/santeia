@@ -38,7 +38,13 @@ export class BloodSugarController extends BaseController {
         return;
       }
 
-      if (!Object.values(ReadingType).includes(readingType)) {
+      const normalizedType = (
+        typeof readingType === "string"
+          ? readingType.toUpperCase()
+          : readingType
+      ) as ReadingType;
+
+      if (!Object.values(ReadingType).includes(normalizedType)) {
         this.sendError(res, "Invalid reading type", 400);
         return;
       }
@@ -55,7 +61,7 @@ export class BloodSugarController extends BaseController {
       const result = await this.bloodSugarService.createReading(userId, {
         value,
         unit,
-        readingType,
+        readingType: normalizedType,
         notes,
         timestamp: timestamp ? new Date(timestamp) : undefined,
       });

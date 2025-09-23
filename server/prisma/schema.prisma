@@ -18,6 +18,12 @@ model User {
   isActive  Boolean  @default(true)
   password  String?
   dateOfBirth String?
+  // Profile health fields
+  heightCm  Float?
+  weightKg  Float?
+  bloodPressureSystolic Int?
+  bloodPressureDiastolic Int?
+  heartRate Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   onboardingCompleted Boolean @default(false)

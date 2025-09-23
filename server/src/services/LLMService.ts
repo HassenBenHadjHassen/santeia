@@ -127,6 +127,34 @@ export class LLMService {
         context += `Date of Birth: ${user.dateOfBirth}\n`;
       }
 
+      // Vitals and profile health fields
+      if ((user as any).heightCm != null) {
+        context += `Height: ${(user as any).heightCm} cm\n`;
+      }
+      if ((user as any).weightKg != null) {
+        context += `Weight: ${(user as any).weightKg} kg\n`;
+      }
+      if (
+        (user as any).heightCm != null &&
+        (user as any).weightKg != null &&
+        Number((user as any).heightCm) > 0
+      ) {
+        const hMeters = Number((user as any).heightCm) / 100;
+        const bmi = Number((user as any).weightKg) / (hMeters * hMeters);
+        context += `BMI (calculated): ${Math.round(bmi * 10) / 10}\n`;
+      }
+      if (
+        (user as any).bloodPressureSystolic != null &&
+        (user as any).bloodPressureDiastolic != null
+      ) {
+        context += `Blood Pressure: ${(user as any).bloodPressureSystolic}/${
+          (user as any).bloodPressureDiastolic
+        } mmHg\n`;
+      }
+      if ((user as any).heartRate != null) {
+        context += `Resting Heart Rate: ${(user as any).heartRate} bpm\n`;
+      }
+
       if (user.diagnosisDate) {
         context += `Diagnosis Date: ${user.diagnosisDate}\n`;
       }
@@ -184,20 +212,31 @@ export class LLMService {
         const activityService = new PhysicalActivityService();
         const medicationService = new MedicationService();
 
+        const { BloodSugarService } = require("@/services/BloodSugarService");
+        const bloodSugarService = new BloodSugarService();
+
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+
         const [
           recentMealsRes,
-          latestSysRes,
-          latestDiaRes,
-          latestWeightRes,
+          recentMetricsRes,
           recentActivitiesRes,
           doseSummaryRes,
+          bloodSugarRes,
         ] = await Promise.all([
           mealService.getRecentMeals(userId, 5),
-          metricService.getLatestMetric(userId, "BLOOD_PRESSURE_SYSTOLIC"),
-          metricService.getLatestMetric(userId, "BLOOD_PRESSURE_DIASTOLIC"),
-          metricService.getLatestMetric(userId, "WEIGHT"),
+          metricService.getMetricsByDateRange(userId, thirtyDaysAgo, now),
           activityService.getRecentActivities(userId, 3),
           medicationService.getDoseSummary(userId),
+          bloodSugarService.getReadingsByUser(
+            userId,
+            {
+              startDate: thirtyDaysAgo,
+              endDate: now,
+            },
+            { sortBy: "timestamp", sortOrder: "desc", limit: 20 }
+          ),
         ]);
 
         const lines: string[] = [];
@@ -216,25 +255,150 @@ export class LLMService {
           lines.push(`Recent Meals: ${names}`);
         }
 
-        if (latestSysRes.success && latestDiaRes.success) {
-          const s = latestSysRes.data;
-          const d = latestDiaRes.data;
-          if (s && d) {
-            lines.push(
-              `Latest Blood Pressure: ${Math.round(s.value)}/${Math.round(
-                d.value
-              )} mmHg (${new Date(s.timestamp).toLocaleString()})`
-            );
-          }
-        }
+        // Process health metrics from last 30 days
+        if (
+          recentMetricsRes.success &&
+          recentMetricsRes.data &&
+          recentMetricsRes.data.length > 0
+        ) {
+          const metrics = recentMetricsRes.data;
 
-        if (latestWeightRes.success && latestWeightRes.data) {
-          const w = latestWeightRes.data;
-          lines.push(
-            `Latest Weight: ${Math.round(w.value * 10) / 10} ${
-              w.unit
-            } (${new Date(w.timestamp).toLocaleString()})`
-          );
+          // Group metrics by type
+          const metricsByType: { [key: string]: any[] } = {};
+          metrics.forEach((metric: any) => {
+            if (!metricsByType[metric.metricType]) {
+              metricsByType[metric.metricType] = [];
+            }
+            metricsByType[metric.metricType].push(metric);
+          });
+
+          // Process each metric type with ALL individual readings
+          Object.entries(metricsByType).forEach(([type, typeMetrics]) => {
+            const sortedMetrics = typeMetrics.sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+            );
+            const count = sortedMetrics.length;
+
+            switch (type) {
+              case "WEIGHT":
+                lines.push(`Weight Readings (${count} in last 30 days):`);
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value * 10) / 10} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "BLOOD_PRESSURE_SYSTOLIC":
+                const diastolicMetrics =
+                  metricsByType["BLOOD_PRESSURE_DIASTOLIC"] || [];
+                const bpPairs = sortedMetrics.map((sys: any) => {
+                  const matchingDia = diastolicMetrics.find(
+                    (dia: any) =>
+                      Math.abs(
+                        new Date(dia.timestamp).getTime() -
+                          new Date(sys.timestamp).getTime()
+                      ) < 60000
+                  );
+                  return {
+                    systolic: sys.value,
+                    diastolic: matchingDia?.value || 0,
+                    timestamp: sys.timestamp,
+                    date: new Date(sys.timestamp).toLocaleDateString(),
+                  };
+                });
+                lines.push(
+                  `Blood Pressure Readings (${bpPairs.length} in last 30 days):`
+                );
+                bpPairs.forEach((bp: any) => {
+                  const date = new Date(bp.timestamp);
+                  lines.push(
+                    `  ${Math.round(bp.systolic)}/${Math.round(
+                      bp.diastolic
+                    )} mmHg on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "HEART_RATE":
+                lines.push(`Heart Rate Readings (${count} in last 30 days):`);
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value)} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "BMI":
+                lines.push(`BMI Readings (${count} in last 30 days):`);
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value * 10) / 10} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "CHOLESTEROL_TOTAL":
+                lines.push(
+                  `Total Cholesterol Readings (${count} in last 30 days):`
+                );
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value)} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "CHOLESTEROL_HDL":
+                lines.push(
+                  `HDL Cholesterol Readings (${count} in last 30 days):`
+                );
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value)} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "CHOLESTEROL_LDL":
+                lines.push(
+                  `LDL Cholesterol Readings (${count} in last 30 days):`
+                );
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value)} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+              case "TRIGLYCERIDES":
+                lines.push(
+                  `Triglycerides Readings (${count} in last 30 days):`
+                );
+                sortedMetrics.forEach((metric: any) => {
+                  const date = new Date(metric.timestamp);
+                  lines.push(
+                    `  ${Math.round(metric.value)} ${
+                      metric.unit
+                    } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+                  );
+                });
+                break;
+            }
+          });
         }
 
         if (
@@ -268,6 +432,54 @@ export class LLMService {
               .join(", ");
             lines.push(`Recent Medication Doses: ${short}`);
           }
+        }
+
+        if (
+          bloodSugarRes.success &&
+          bloodSugarRes.data &&
+          bloodSugarRes.data.length > 0
+        ) {
+          const readings = bloodSugarRes.data;
+          const typeLabels: { [key: string]: string } = {
+            FASTING: "Fasting",
+            BEFORE_MEAL: "Before Meals",
+            AFTER_MEAL: "After Meals",
+            BEDTIME: "Bedtime",
+            RANDOM: "Random",
+            POST_EXERCISE: "Post-Exercise",
+          };
+
+          // Group by reading type
+          const readingsByType: { [key: string]: any[] } = {};
+          readings.forEach((reading: any) => {
+            if (!readingsByType[reading.readingType]) {
+              readingsByType[reading.readingType] = [];
+            }
+            readingsByType[reading.readingType].push(reading);
+          });
+
+          // Add ALL individual readings by type
+          Object.entries(readingsByType).forEach(([type, typeReadings]) => {
+            const sortedReadings = typeReadings.sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+            );
+
+            lines.push(
+              `Blood Sugar ${typeLabels[type] || type} (${
+                typeReadings.length
+              } readings in last 30 days):`
+            );
+            sortedReadings.forEach((reading: any) => {
+              const date = new Date(reading.timestamp);
+              lines.push(
+                `  ${reading.value} ${
+                  reading.unit
+                } on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`
+              );
+            });
+          });
         }
 
         if (lines.length > 0) {

@@ -55,7 +55,10 @@ export interface UpdateHealthMetricRequest {
 }
 
 export interface HealthMetricFilters {
+  // For backward-compat with components using 'type'
   type?: string;
+  // New: explicit backend param name
+  metricType?: string;
   startDate?: Date;
   endDate?: Date;
   minValue?: number;
@@ -98,7 +101,9 @@ export class HealthMetricService {
   ): Promise<ServiceResponse<HealthMetric[]>> {
     const params = new URLSearchParams();
 
-    if (filters.type) params.append("type", filters.type);
+    // Prefer metricType if provided, otherwise map legacy 'type' to metricType
+    const metricType = filters.metricType ?? filters.type;
+    if (metricType) params.append("metricType", metricType);
     if (filters.startDate)
       params.append("startDate", filters.startDate.toISOString());
     if (filters.endDate)
@@ -186,76 +191,8 @@ export class HealthMetricService {
     });
   }
 
-  // Get health metrics statistics
-  async getStatistics(
-    filters: HealthMetricFilters = {},
-    token: string,
-    config?: RequestConfig
-  ): Promise<
-    ServiceResponse<{
-      totalMetrics: number;
-      byType: Array<{
-        type: string;
-        count: number;
-        latestValue?: string;
-        latestUnit?: string;
-      }>;
-      trends: Array<{
-        date: string;
-        metrics: Record<string, { value: string; unit: string }>;
-      }>;
-      insights: Array<{
-        type: string;
-        insight: string;
-        recommendation?: string;
-      }>;
-    }>
-  > {
-    const params = new URLSearchParams();
-
-    if (filters.type) params.append("type", filters.type);
-    if (filters.startDate)
-      params.append("startDate", filters.startDate.toISOString());
-    if (filters.endDate)
-      params.append("endDate", filters.endDate.toISOString());
-    if (filters.minValue !== undefined)
-      params.append("minValue", filters.minValue.toString());
-    if (filters.maxValue !== undefined)
-      params.append("maxValue", filters.maxValue.toString());
-
-    const queryString = params.toString();
-    const url = queryString
-      ? `/health-metrics/statistics?${queryString}`
-      : "/health-metrics/statistics";
-
-    return this.client.get(url, {
-      ...config,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
-
-  // Get latest health metrics
-  async getLatestMetrics(
-    types?: string[],
-    token: string,
-    config?: RequestConfig
-  ): Promise<ServiceResponse<HealthMetric[]>> {
-    const params = new URLSearchParams();
-
-    if (types && types.length > 0) {
-      types.forEach((type) => params.append("types", type));
-    }
-
-    const queryString = params.toString();
-    const url = queryString
-      ? `/health-metrics/latest?${queryString}`
-      : "/health-metrics/latest";
-
-    return this.client.get(url, {
-      ...config,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
+  // Removed getLatestMetrics() that used a non-existent backend route with query
+  // Use backend-supported: /health-metrics/latest/:metricType per call if needed
 
   // Health check
   async healthCheck(

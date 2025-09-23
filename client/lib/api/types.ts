@@ -36,6 +36,13 @@ export interface User {
   updatedAt: string;
   onboardingCompleted: boolean;
   // Onboarding data
+  dateOfBirth?: string;
+  // Profile health fields
+  heightCm?: number | null;
+  weightKg?: number | null;
+  bloodPressureSystolic?: number | null;
+  bloodPressureDiastolic?: number | null;
+  heartRate?: number | null;
   diabetesType?: string;
   diagnosisDate?: string;
   currentMedications?: string[];
@@ -92,6 +99,13 @@ export interface OnboardingData {
     afterMeals: string;
     bedtime: string;
   };
+  // Optional profile health fields
+  dateOfBirth?: string;
+  heightCm?: number;
+  weightKg?: number;
+  bloodPressureSystolic?: number;
+  bloodPressureDiastolic?: number;
+  heartRate?: number;
   activityLevel: string;
   dietaryPreferences: string[];
   emergencyContact: {

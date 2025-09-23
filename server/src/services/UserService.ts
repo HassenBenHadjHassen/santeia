@@ -236,6 +236,26 @@ export class UserService extends BaseService<IUser> {
         diagnosisDate: onboardingData.diagnosisDate || null,
         currentMedications: onboardingData.currentMedications,
         bloodSugarTargets: onboardingData.bloodSugarTargets,
+        // Map optional profile health fields if provided
+        ...((onboardingData as any).dateOfBirth !== undefined && {
+          dateOfBirth: (onboardingData as any).dateOfBirth || null,
+        }),
+        ...((onboardingData as any).heightCm !== undefined && {
+          heightCm: (onboardingData as any).heightCm,
+        }),
+        ...((onboardingData as any).weightKg !== undefined && {
+          weightKg: (onboardingData as any).weightKg,
+        }),
+        ...((onboardingData as any).bloodPressureSystolic !== undefined && {
+          bloodPressureSystolic: (onboardingData as any).bloodPressureSystolic,
+        }),
+        ...((onboardingData as any).bloodPressureDiastolic !== undefined && {
+          bloodPressureDiastolic: (onboardingData as any)
+            .bloodPressureDiastolic,
+        }),
+        ...((onboardingData as any).heartRate !== undefined && {
+          heartRate: (onboardingData as any).heartRate,
+        }),
         activityLevel: onboardingData.activityLevel,
         dietaryPreferences: onboardingData.dietaryPreferences,
         emergencyContact: onboardingData.emergencyContact,

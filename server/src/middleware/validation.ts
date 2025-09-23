@@ -75,6 +75,16 @@ export const commonSchemas = {
       role: Joi.string().valid("ADMIN", "USER", "MODERATOR").default("USER"),
       isActive: Joi.boolean().default(true),
       password: Joi.string().min(6).optional(),
+      dateOfBirth: Joi.string().optional().allow(""),
+      heightCm: Joi.number().positive().optional(),
+      weightKg: Joi.number().positive().optional(),
+      bloodPressureSystolic: Joi.number().integer().min(50).max(300).optional(),
+      bloodPressureDiastolic: Joi.number()
+        .integer()
+        .min(30)
+        .max(200)
+        .optional(),
+      heartRate: Joi.number().integer().min(20).max(250).optional(),
     }),
 
     update: Joi.object({
@@ -83,6 +93,22 @@ export const commonSchemas = {
       role: Joi.string().valid("ADMIN", "USER", "MODERATOR").optional(),
       isActive: Joi.boolean().optional(),
       password: Joi.string().min(6).optional(),
+      dateOfBirth: Joi.string().optional().allow(""),
+      heightCm: Joi.number().positive().optional().allow(null),
+      weightKg: Joi.number().positive().optional().allow(null),
+      bloodPressureSystolic: Joi.number()
+        .integer()
+        .min(50)
+        .max(300)
+        .optional()
+        .allow(null),
+      bloodPressureDiastolic: Joi.number()
+        .integer()
+        .min(30)
+        .max(200)
+        .optional()
+        .allow(null),
+      heartRate: Joi.number().integer().min(20).max(250).optional().allow(null),
     }),
   },
 
@@ -123,6 +149,21 @@ export const commonSchemas = {
           afterMeals: Joi.string().optional().allow(""),
           bedtime: Joi.string().optional().allow(""),
         }).required(),
+        // Optional profile health fields collected during onboarding
+        dateOfBirth: Joi.string().optional().allow(""),
+        heightCm: Joi.number().positive().optional(),
+        weightKg: Joi.number().positive().optional(),
+        bloodPressureSystolic: Joi.number()
+          .integer()
+          .min(50)
+          .max(300)
+          .optional(),
+        bloodPressureDiastolic: Joi.number()
+          .integer()
+          .min(30)
+          .max(200)
+          .optional(),
+        heartRate: Joi.number().integer().min(20).max(250).optional(),
         activityLevel: Joi.string()
           .valid("sedentary", "light", "moderate", "active", "very-active")
           .required(),
@@ -245,13 +286,26 @@ export const commonSchemas = {
           "blood_pressure",
           "cholesterol"
         )
-        .required(),
-      value: Joi.string().required(),
+        .optional(),
+      metricType: Joi.string()
+        .valid(
+          "WEIGHT",
+          "BLOOD_PRESSURE_SYSTOLIC",
+          "BLOOD_PRESSURE_DIASTOLIC",
+          "CHOLESTEROL_TOTAL",
+          "CHOLESTEROL_HDL",
+          "CHOLESTEROL_LDL",
+          "TRIGLYCERIDES",
+          "HEART_RATE",
+          "BMI"
+        )
+        .optional(),
+      value: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
       unit: Joi.string().required(),
       timestamp: Joi.date().optional(),
       notes: Joi.string().max(500).optional(),
       additionalData: Joi.object().optional(),
-    }),
+    }).or("type", "metricType"), // At least one of type or metricType is required
   },
 
   alert: {

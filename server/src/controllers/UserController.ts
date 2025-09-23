@@ -105,6 +105,18 @@ export class UserController extends BaseController {
         ...(req.body.name && { name: req.body.name }),
         ...(req.body.role && { role: req.body.role }),
         ...(req.body.isActive !== undefined && { isActive: req.body.isActive }),
+        ...(req.body.dateOfBirth !== undefined && {
+          dateOfBirth: req.body.dateOfBirth,
+        }),
+        ...("heightCm" in req.body && { heightCm: req.body.heightCm }),
+        ...("weightKg" in req.body && { weightKg: req.body.weightKg }),
+        ...("bloodPressureSystolic" in req.body && {
+          bloodPressureSystolic: req.body.bloodPressureSystolic,
+        }),
+        ...("bloodPressureDiastolic" in req.body && {
+          bloodPressureDiastolic: req.body.bloodPressureDiastolic,
+        }),
+        ...("heartRate" in req.body && { heartRate: req.body.heartRate }),
       };
 
       const result = await this.userService.update(id, updateData);

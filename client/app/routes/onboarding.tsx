@@ -43,6 +43,13 @@ interface OnboardingData {
     afterMeals: string;
     bedtime: string;
   };
+  // Optional profile health fields
+  dateOfBirth?: string;
+  heightCm?: number;
+  weightKg?: number;
+  bloodPressureSystolic?: number;
+  bloodPressureDiastolic?: number;
+  heartRate?: number;
   activityLevel: string;
   dietaryPreferences: string[];
   emergencyContact: {
@@ -110,6 +117,12 @@ export default function Onboarding() {
       afterMeals: "",
       bedtime: "",
     },
+    dateOfBirth: "",
+    heightCm: undefined,
+    weightKg: undefined,
+    bloodPressureSystolic: undefined,
+    bloodPressureDiastolic: undefined,
+    heartRate: undefined,
     activityLevel: "",
     dietaryPreferences: [],
     emergencyContact: {
@@ -123,6 +136,11 @@ export default function Onboarding() {
     {
       title: "Welcome to SantéAI",
       description: "Let's set up your personalized diabetes management profile",
+      icon: Heart,
+    },
+    {
+      title: "Vitals & Personal Info",
+      description: "Add your height, weight, blood pressure, and DOB",
       icon: Heart,
     },
     {
@@ -260,6 +278,136 @@ export default function Onboarding() {
       case 1:
         return (
           <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="dateOfBirth"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Date of Birth (optional)
+                </label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={formData.dateOfBirth || ""}
+                  onChange={(e) =>
+                    handleInputChange("dateOfBirth", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="heightCm"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Height (cm)
+                </label>
+                <Input
+                  id="heightCm"
+                  type="number"
+                  placeholder="e.g., 175"
+                  value={formData.heightCm ?? ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "heightCm",
+                      e.target.value === "" ? undefined : Number(e.target.value)
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="weightKg"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Weight (kg)
+                </label>
+                <Input
+                  id="weightKg"
+                  type="number"
+                  placeholder="e.g., 70"
+                  value={formData.weightKg ?? ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "weightKg",
+                      e.target.value === "" ? undefined : Number(e.target.value)
+                    )
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="bpSys"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    BP Systolic (mmHg)
+                  </label>
+                  <Input
+                    id="bpSys"
+                    type="number"
+                    placeholder="e.g., 120"
+                    value={formData.bloodPressureSystolic ?? ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "bloodPressureSystolic",
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value)
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="bpDia"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    BP Diastolic (mmHg)
+                  </label>
+                  <Input
+                    id="bpDia"
+                    type="number"
+                    placeholder="e.g., 80"
+                    value={formData.bloodPressureDiastolic ?? ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "bloodPressureDiastolic",
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value)
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="heartRate"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Resting Heart Rate (bpm)
+                </label>
+                <Input
+                  id="heartRate"
+                  type="number"
+                  placeholder="e.g., 70"
+                  value={formData.heartRate ?? ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "heartRate",
+                      e.target.value === "" ? undefined : Number(e.target.value)
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
                 What type of diabetes do you have?
@@ -308,7 +456,7 @@ export default function Onboarding() {
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-6">
             <div>
@@ -345,7 +493,7 @@ export default function Onboarding() {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div>
@@ -446,7 +594,7 @@ export default function Onboarding() {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div>
@@ -509,7 +657,7 @@ export default function Onboarding() {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div>
@@ -584,7 +732,7 @@ export default function Onboarding() {
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="text-center space-y-6">
             <div className="mx-auto w-24 h-24 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -621,16 +769,18 @@ export default function Onboarding() {
       case 0:
         return true;
       case 1:
-        return formData.diabetesType !== "";
+        return true; // vitals optional
       case 2:
-        return true; // Medications are optional
+        return formData.diabetesType !== "";
       case 3:
-        return true; // Blood sugar targets are optional
+        return true; // Medications are optional
       case 4:
-        return formData.activityLevel !== "";
+        return true; // Blood sugar targets are optional
       case 5:
-        return true; // Emergency contact is optional
+        return formData.activityLevel !== "";
       case 6:
+        return true; // Emergency contact is optional
+      case 7:
         return true;
       default:
         return false;

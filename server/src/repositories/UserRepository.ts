@@ -22,6 +22,11 @@ export class UserRepository extends BaseRepository<PrismaUser> {
           password: hashedPassword,
           onboardingCompleted: data.onboardingCompleted ?? false,
           dateOfBirth: (data as any).dateOfBirth,
+          heightCm: (data as any).heightCm as any,
+          weightKg: (data as any).weightKg as any,
+          bloodPressureSystolic: (data as any).bloodPressureSystolic as any,
+          bloodPressureDiastolic: (data as any).bloodPressureDiastolic as any,
+          heartRate: (data as any).heartRate as any,
           diabetesType: data.diabetesType,
           diagnosisDate: data.diagnosisDate,
           currentMedications: data.currentMedications,
@@ -73,6 +78,19 @@ export class UserRepository extends BaseRepository<PrismaUser> {
       if (data.password) {
         updateData.password = await bcrypt.hash(data.password, 12);
       }
+      // Ensure new profile health fields pass through
+      if ((data as any).heightCm !== undefined)
+        updateData.heightCm = (data as any).heightCm;
+      if ((data as any).weightKg !== undefined)
+        updateData.weightKg = (data as any).weightKg;
+      if ((data as any).bloodPressureSystolic !== undefined)
+        updateData.bloodPressureSystolic = (data as any).bloodPressureSystolic;
+      if ((data as any).bloodPressureDiastolic !== undefined)
+        updateData.bloodPressureDiastolic = (
+          data as any
+        ).bloodPressureDiastolic;
+      if ((data as any).heartRate !== undefined)
+        updateData.heartRate = (data as any).heartRate;
 
       const prismaUser = await this.prisma.user.update({
         where: { id },

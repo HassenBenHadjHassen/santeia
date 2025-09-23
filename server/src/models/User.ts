@@ -11,6 +11,12 @@ export class User extends BaseModel implements IUser {
   public onboardingCompleted: boolean;
   // Onboarding data
   public dateOfBirth: string | null;
+  // Profile health fields
+  public heightCm: number | null;
+  public weightKg: number | null;
+  public bloodPressureSystolic: number | null;
+  public bloodPressureDiastolic: number | null;
+  public heartRate: number | null;
   public diabetesType: string | null;
   public diagnosisDate: string | null;
   public currentMedications: string[];
@@ -38,6 +44,11 @@ export class User extends BaseModel implements IUser {
     this.onboardingCompleted = data.onboardingCompleted ?? false;
     // Initialize onboarding data
     this.dateOfBirth = data.dateOfBirth ?? null;
+    this.heightCm = (data as any).heightCm ?? null;
+    this.weightKg = (data as any).weightKg ?? null;
+    this.bloodPressureSystolic = (data as any).bloodPressureSystolic ?? null;
+    this.bloodPressureDiastolic = (data as any).bloodPressureDiastolic ?? null;
+    this.heartRate = (data as any).heartRate ?? null;
     this.diabetesType = data.diabetesType ?? null;
     this.diagnosisDate = data.diagnosisDate ?? null;
     this.currentMedications = data.currentMedications ?? [];
@@ -67,6 +78,11 @@ export class User extends BaseModel implements IUser {
       password: this.password,
       onboardingCompleted: this.onboardingCompleted,
       dateOfBirth: this.dateOfBirth,
+      heightCm: this.heightCm,
+      weightKg: this.weightKg,
+      bloodPressureSystolic: this.bloodPressureSystolic,
+      bloodPressureDiastolic: this.bloodPressureDiastolic,
+      heartRate: this.heartRate,
       diabetesType: this.diabetesType,
       diagnosisDate: this.diagnosisDate,
       currentMedications: this.currentMedications,
@@ -89,6 +105,13 @@ export class User extends BaseModel implements IUser {
     this.onboardingCompleted =
       data.onboardingCompleted ?? this.onboardingCompleted;
     this.dateOfBirth = data.dateOfBirth ?? this.dateOfBirth;
+    this.heightCm = (data as any).heightCm ?? this.heightCm;
+    this.weightKg = (data as any).weightKg ?? this.weightKg;
+    this.bloodPressureSystolic =
+      (data as any).bloodPressureSystolic ?? this.bloodPressureSystolic;
+    this.bloodPressureDiastolic =
+      (data as any).bloodPressureDiastolic ?? this.bloodPressureDiastolic;
+    this.heartRate = (data as any).heartRate ?? this.heartRate;
     this.diabetesType = data.diabetesType ?? this.diabetesType;
     this.diagnosisDate = data.diagnosisDate ?? this.diagnosisDate;
     this.currentMedications =

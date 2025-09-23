@@ -286,6 +286,75 @@ export default function Profile() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Vitals */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-foreground">
+                    Vitals
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Date of Birth
+                      </label>
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
+                          {user!.dateOfBirth || "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Height
+                      </label>
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
+                          {user!.heightCm != null
+                            ? `${user!.heightCm} cm`
+                            : "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Weight
+                      </label>
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
+                          {user!.weightKg != null
+                            ? `${user!.weightKg} kg`
+                            : "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Blood Pressure
+                      </label>
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
+                          {user!.bloodPressureSystolic != null &&
+                          user!.bloodPressureDiastolic != null
+                            ? `${user!.bloodPressureSystolic}/${
+                                user!.bloodPressureDiastolic
+                              } mmHg`
+                            : "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Resting Heart Rate
+                      </label>
+                      <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
+                        <p className="text-sm font-medium text-foreground">
+                          {user!.heartRate != null
+                            ? `${user!.heartRate} bpm`
+                            : "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 {/* Diabetes Type & Management */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-foreground">

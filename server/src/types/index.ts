@@ -39,6 +39,12 @@ export interface User extends BaseEntity {
   onboardingCompleted: boolean;
   // Onboarding data
   dateOfBirth: string | null;
+  // Profile health fields
+  heightCm?: number | null;
+  weightKg?: number | null;
+  bloodPressureSystolic?: number | null;
+  bloodPressureDiastolic?: number | null;
+  heartRate?: number | null;
   diabetesType: string | null;
   diagnosisDate: string | null;
   currentMedications: string[];
