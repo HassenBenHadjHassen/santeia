@@ -23,9 +23,21 @@ import { UserService } from "../../lib/api/services/userService";
 import { ApiClient } from "../../lib/api/client";
 import { authService } from "../../lib/auth";
 import { useTranslation } from "react-i18next";
+import type { RequestConfig } from "lib/api";
 
 // Create API client and service instances
-const apiClient = new ApiClient("http://localhost:3000/api");
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const defaultConfig: RequestConfig = {
+  timeout: 15000,
+  retries: 3,
+  retryDelay: 1000,
+};
+
+// Create API client instance
+const apiClient = new ApiClient(API_BASE_URL, defaultConfig);
+
 const healthMetricService = new HealthMetricService(apiClient);
 const bloodSugarService = new BloodSugarService(apiClient);
 const userService = new UserService(apiClient);
