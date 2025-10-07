@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseController } from "./BaseController";
 import { UserService } from "@/services/UserService";
-import { User as IUser, OnboardingData } from "@/types";
+import { User as IUser, OnboardingData, ServiceResponse } from "@/types";
 import jwt from "jsonwebtoken";
 import { config } from "@/config/environment";
 import { AuthRequest } from "@/middleware/auth";
@@ -251,7 +251,30 @@ export class UserController extends BaseController {
         this.sendError(res, result.error || "User not found", 404);
         return;
       }
-      this.sendServiceResponse(res, result);
+
+      const mappedResult = {
+        id: result.data?.id,
+        name: result.data?.name,
+        role: result.data?.role,
+        onboardingCompleted: result.data?.onboardingCompleted || false,
+        // Include health profile fields from onboarding
+        dateOfBirth: result.data?.dateOfBirth,
+        heightCm: result.data?.heightCm,
+        weightKg: result.data?.weightKg,
+        bloodPressureSystolic: result.data?.bloodPressureSystolic,
+        bloodPressureDiastolic: result.data?.bloodPressureDiastolic,
+        heartRate: result.data?.heartRate,
+        // Include other onboarding data
+        diabetesType: result.data?.diabetesType,
+        diagnosisDate: result.data?.diagnosisDate,
+        currentMedications: result.data?.currentMedications,
+        bloodSugarTargets: result.data?.bloodSugarTargets,
+        activityLevel: result.data?.activityLevel,
+        dietaryPreferences: result.data?.dietaryPreferences,
+        emergencyContact: result.data?.emergencyContact,
+      };
+
+      this.sendSuccess(res, mappedResult);
     });
   };
 

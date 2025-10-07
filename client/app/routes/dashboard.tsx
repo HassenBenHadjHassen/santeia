@@ -3,6 +3,7 @@ import { MainLayout } from "../../components/layout/main-layout";
 import { useAuth } from "../../lib/auth-context";
 import { ProtectedRoute } from "../../components/auth/protected-route";
 import { authService } from "../../lib/auth";
+import { useTranslation } from "react-i18next";
 import type { Route } from "./+types/dashboard";
 
 export function meta() {
@@ -37,6 +38,7 @@ clientLoader.hydrate = true;
 
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleMetricAdded = (metric: any) => {
     // This could trigger a refresh of the dashboard
@@ -56,10 +58,10 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
         <div className="mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Dashboard
+              {t("dashboard.title")}
             </h1>
             <p className="text-muted-foreground">
-              Overview of your health data and metrics
+              {t("dashboard.description")}
             </p>
           </div>
         </div>

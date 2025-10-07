@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "components/ui/button";
 import { Input } from "components/ui/input";
@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../lib/auth-context";
 import { userService } from "../../lib/api";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "../../components/ui/language-switcher";
+import { authService } from "../../lib/auth";
 
 export function meta() {
   return [
@@ -60,50 +63,59 @@ interface OnboardingData {
 }
 
 const DIABETES_TYPES = [
-  { value: "type1", label: "Type 1 Diabetes" },
-  { value: "type2", label: "Type 2 Diabetes" },
-  { value: "gestational", label: "Gestational Diabetes" },
-  { value: "prediabetes", label: "Prediabetes" },
-  { value: "other", label: "Other" },
+  { value: "type1", label: "onboarding.diabetesTypes.type1" },
+  { value: "type2", label: "onboarding.diabetesTypes.type2" },
+  { value: "gestational", label: "onboarding.diabetesTypes.gestational" },
+  { value: "prediabetes", label: "onboarding.diabetesTypes.prediabetes" },
+  { value: "other", label: "onboarding.diabetesTypes.other" },
 ];
 
 const ACTIVITY_LEVELS = [
-  { value: "sedentary", label: "Sedentary (little to no exercise)" },
-  { value: "light", label: "Light activity (1-3 days/week)" },
-  { value: "moderate", label: "Moderate activity (3-5 days/week)" },
-  { value: "active", label: "Active (6-7 days/week)" },
+  { value: "sedentary", label: "onboarding.activityLevels.sedentary" },
+  { value: "light", label: "onboarding.activityLevels.light" },
+  { value: "moderate", label: "onboarding.activityLevels.moderate" },
+  { value: "active", label: "onboarding.activityLevels.active" },
   {
     value: "very-active",
-    label: "Very active (twice daily or intense exercise)",
+    label: "onboarding.activityLevels.veryActive",
   },
 ];
 
 const DIETARY_PREFERENCES = [
-  "Low carb",
-  "Mediterranean",
-  "Vegetarian",
-  "Vegan",
-  "Gluten-free",
-  "Dairy-free",
-  "Keto",
-  "Intermittent fasting",
+  "onboarding.dietaryOptions.lowCarb",
+  "onboarding.dietaryOptions.mediterranean",
+  "onboarding.dietaryOptions.vegetarian",
+  "onboarding.dietaryOptions.vegan",
+  "onboarding.dietaryOptions.glutenFree",
+  "onboarding.dietaryOptions.dairyFree",
+  "onboarding.dietaryOptions.keto",
+  "onboarding.dietaryOptions.intermittentFasting",
 ];
 
 const COMMON_MEDICATIONS = [
-  "Metformin",
-  "Insulin (long-acting)",
-  "Insulin (short-acting)",
-  "Sulfonylureas",
-  "DPP-4 inhibitors",
-  "GLP-1 receptor agonists",
-  "SGLT2 inhibitors",
-  "Thiazolidinediones",
-  "Alpha-glucosidase inhibitors",
+  "onboarding.medications.metformin",
+  "onboarding.medications.insulinLongActing",
+  "onboarding.medications.insulinShortActing",
+  "onboarding.medications.sulfonylureas",
+  "onboarding.medications.dpp4Inhibitors",
+  "onboarding.medications.glp1ReceptorAgonists",
+  "onboarding.medications.sglt2Inhibitors",
+  "onboarding.medications.thiazolidinediones",
+  "onboarding.medications.alphaGlucosidaseInhibitors",
 ];
 
 export default function Onboarding() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAuthenticated, refreshUser } = useAuth();
+
+  // Check if onboarding is already completed
+  useEffect(() => {
+    console.log({ user });
+    if (isAuthenticated && user?.onboardingCompleted) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, user?.onboardingCompleted, navigate]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,44 +146,43 @@ export default function Onboarding() {
 
   const steps = [
     {
-      title: "Welcome to SantéAI",
-      description: "Let's set up your personalized diabetes management profile",
+      title: t("onboarding.welcomeTitle"),
+      description: t("onboarding.welcomeDescription"),
       icon: Heart,
     },
     {
-      title: "Vitals & Personal Info",
-      description: "Add your height, weight, blood pressure, and DOB",
+      title: t("onboarding.vitalsPersonalInfo"),
+      description: t("onboarding.vitalsPersonalInfoDesc"),
       icon: Heart,
     },
     {
-      title: "Diabetes Information",
-      description: "Tell us about your diabetes type and diagnosis",
+      title: t("onboarding.diabetesInformation"),
+      description: t("onboarding.diabetesInformationDesc"),
       icon: Target,
     },
     {
-      title: "Medications & Treatment",
-      description: "What medications are you currently taking?",
+      title: t("onboarding.medicationsTreatment"),
+      description: t("onboarding.medicationsTreatmentDesc"),
       icon: Pill,
     },
     {
-      title: "Blood Sugar Targets",
-      description: "Set your personalized blood sugar goals",
+      title: t("onboarding.bloodSugarTargets"),
+      description: t("onboarding.bloodSugarTargetsDesc"),
       icon: Activity,
     },
     {
-      title: "Lifestyle & Diet",
-      description:
-        "Help us understand your activity level and dietary preferences",
+      title: t("onboarding.lifestyleDiet"),
+      description: t("onboarding.lifestyleDietDesc"),
       icon: Utensils,
     },
     {
-      title: "Emergency Contact",
-      description: "Add an emergency contact for safety",
+      title: t("onboarding.emergencyContact"),
+      description: t("onboarding.emergencyContactDesc"),
       icon: Heart,
     },
     {
-      title: "Complete Setup",
-      description: "Review your information and start your journey",
+      title: t("onboarding.completeSetup"),
+      description: t("onboarding.completeSetupDesc"),
       icon: Check,
     },
   ];
@@ -201,9 +212,23 @@ export default function Onboarding() {
       // Refresh user data to get updated onboarding information
       if (isAuthenticated) {
         await refreshUser();
+        // Wait for user state to be updated
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Double-check that onboarding is completed
+        const token = authService.getToken();
+        if (token) {
+          const updatedUser = await userService.me(token);
+          if (updatedUser.onboardingCompleted) {
+            // Force a full page reload to ensure clean state
+            window.location.href = "/";
+            return;
+          }
+        }
       }
 
-      navigate("/");
+      // Fallback navigation
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Error completing onboarding:", error);
       const errorMessage =
@@ -258,17 +283,15 @@ export default function Onboarding() {
               <Heart className="h-12 w-12 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold mb-4">Welcome to SantéAI!</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {t("onboarding.welcomeTitle")}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                Your personal health assistant for diabetes management. We'll
-                help you track your blood sugar, manage medications, and make
-                informed health decisions.
+                {t("onboarding.welcomeDescription")}
               </p>
               <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Important:</strong> SantéAI provides educational
-                  guidance and support. Always consult with your healthcare
-                  provider for medical advice and treatment decisions.
+                  <strong>{t("onboarding.importantNote")}</strong>
                 </p>
               </div>
             </div>
@@ -284,7 +307,7 @@ export default function Onboarding() {
                   htmlFor="dateOfBirth"
                   className="block text-sm font-medium mb-2"
                 >
-                  Date of Birth (optional)
+                  {t("onboarding.dateOfBirthOptional")}
                 </label>
                 <Input
                   id="dateOfBirth"
@@ -300,12 +323,12 @@ export default function Onboarding() {
                   htmlFor="heightCm"
                   className="block text-sm font-medium mb-2"
                 >
-                  Height (cm)
+                  {t("onboarding.heightCm")}
                 </label>
                 <Input
                   id="heightCm"
                   type="number"
-                  placeholder="e.g., 175"
+                  placeholder={t("onboarding.heightPlaceholder")}
                   value={formData.heightCm ?? ""}
                   onChange={(e) =>
                     handleInputChange(
@@ -410,7 +433,7 @@ export default function Onboarding() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
-                What type of diabetes do you have?
+                {t("onboarding.whatTypeOfDiabetes")}
               </h3>
               <div className="grid gap-3">
                 {DIABETES_TYPES.map((type) => (
@@ -432,7 +455,7 @@ export default function Onboarding() {
                       }
                       className="mr-3"
                     />
-                    <span>{type.label}</span>
+                    <span>{t(type.label)}</span>
                   </label>
                 ))}
               </div>
@@ -442,7 +465,7 @@ export default function Onboarding() {
                 htmlFor="diagnosisDate"
                 className="block text-sm font-medium mb-2"
               >
-                When were you diagnosed? (optional)
+                {t("onboarding.whenDiagnosedOptional")}
               </label>
               <Input
                 id="diagnosisDate"
@@ -461,11 +484,10 @@ export default function Onboarding() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
-                Current Medications
+                {t("onboarding.currentMedications")}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Select all medications you're currently taking (you can add more
-                later)
+                {t("onboarding.selectMedicationsDesc")}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {COMMON_MEDICATIONS.map((medication) => (
@@ -485,7 +507,7 @@ export default function Onboarding() {
                       }
                       className="mr-3"
                     />
-                    <span className="text-sm">{medication}</span>
+                    <span className="text-sm">{t(medication)}</span>
                   </label>
                 ))}
               </div>
@@ -498,11 +520,10 @@ export default function Onboarding() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
-                Blood Sugar Targets
+                {t("onboarding.bloodSugarTargets")}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Set your personalized blood sugar goals (mg/dL). These can be
-                adjusted later.
+                {t("onboarding.setBloodSugarGoals")}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -510,12 +531,12 @@ export default function Onboarding() {
                     htmlFor="fasting"
                     className="block text-sm font-medium mb-2"
                   >
-                    Fasting (morning)
+                    {t("onboarding.fastingMorning")}
                   </label>
                   <Input
                     id="fasting"
                     type="number"
-                    placeholder="80-130"
+                    placeholder={t("onboarding.fastingPlaceholder")}
                     value={formData.bloodSugarTargets.fasting}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -531,12 +552,12 @@ export default function Onboarding() {
                     htmlFor="beforeMeals"
                     className="block text-sm font-medium mb-2"
                   >
-                    Before Meals
+                    {t("onboarding.beforeMeals")}
                   </label>
                   <Input
                     id="beforeMeals"
                     type="number"
-                    placeholder="80-130"
+                    placeholder={t("onboarding.beforeMealsPlaceholder")}
                     value={formData.bloodSugarTargets.beforeMeals}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -552,12 +573,12 @@ export default function Onboarding() {
                     htmlFor="afterMeals"
                     className="block text-sm font-medium mb-2"
                   >
-                    After Meals (2 hours)
+                    {t("onboarding.afterMeals2Hours")}
                   </label>
                   <Input
                     id="afterMeals"
                     type="number"
-                    placeholder="<180"
+                    placeholder={t("onboarding.afterMealsPlaceholder")}
                     value={formData.bloodSugarTargets.afterMeals}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -573,12 +594,12 @@ export default function Onboarding() {
                     htmlFor="bedtime"
                     className="block text-sm font-medium mb-2"
                   >
-                    Bedtime
+                    {t("onboarding.bedtime")}
                   </label>
                   <Input
                     id="bedtime"
                     type="number"
-                    placeholder="100-140"
+                    placeholder={t("onboarding.bedtimePlaceholder")}
                     value={formData.bloodSugarTargets.bedtime}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -598,7 +619,9 @@ export default function Onboarding() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Activity Level</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {t("onboarding.activityLevel")}
+              </h3>
               <div className="space-y-3">
                 {ACTIVITY_LEVELS.map((level) => (
                   <label
@@ -619,17 +642,17 @@ export default function Onboarding() {
                       }
                       className="mr-3"
                     />
-                    <span>{level.label}</span>
+                    <span>{t(level.label)}</span>
                   </label>
                 ))}
               </div>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-2">
-                Dietary Preferences
+                {t("onboarding.dietaryPreferences")}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Select any dietary preferences or restrictions you follow
+                {t("onboarding.dietaryPreferencesDesc")}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {DIETARY_PREFERENCES.map((preference) => (
@@ -649,7 +672,7 @@ export default function Onboarding() {
                       }
                       className="mr-3"
                     />
-                    <span className="text-sm">{preference}</span>
+                    <span className="text-sm">{t(preference)}</span>
                   </label>
                 ))}
               </div>
@@ -661,9 +684,11 @@ export default function Onboarding() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Emergency Contact</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {t("onboarding.emergencyContact")}
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Add an emergency contact for safety alerts and notifications
+                {t("onboarding.emergencyContactDesc")}
               </p>
               <div className="space-y-4">
                 <div>
@@ -671,11 +696,11 @@ export default function Onboarding() {
                     htmlFor="contactName"
                     className="block text-sm font-medium mb-2"
                   >
-                    Full Name
+                    {t("onboarding.fullName")}
                   </label>
                   <Input
                     id="contactName"
-                    placeholder="Enter full name"
+                    placeholder={t("onboarding.enterFullName")}
                     value={formData.emergencyContact.name}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -691,12 +716,12 @@ export default function Onboarding() {
                     htmlFor="contactPhone"
                     className="block text-sm font-medium mb-2"
                   >
-                    Phone Number
+                    {t("onboarding.phoneNumber")}
                   </label>
                   <Input
                     id="contactPhone"
                     type="tel"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder={t("onboarding.phonePlaceholder")}
                     value={formData.emergencyContact.phone}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -712,11 +737,11 @@ export default function Onboarding() {
                     htmlFor="contactRelationship"
                     className="block text-sm font-medium mb-2"
                   >
-                    Relationship
+                    {t("onboarding.relationship")}
                   </label>
                   <Input
                     id="contactRelationship"
-                    placeholder="e.g., Spouse, Parent, Sibling, Friend"
+                    placeholder={t("onboarding.relationshipPlaceholder")}
                     value={formData.emergencyContact.relationship}
                     onChange={(e) =>
                       handleNestedInputChange(
@@ -739,20 +764,24 @@ export default function Onboarding() {
               <Check className="h-12 w-12 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold mb-4">Setup Complete!</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {t("onboarding.setupComplete")}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                Your personalized diabetes management profile is ready. You can
-                always update these settings in your profile later.
+                {t("onboarding.setupCompleteDesc")}
               </p>
               <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg text-left">
                 <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">
-                  What's Next?
+                  {t("onboarding.whatsNext")}
                 </h4>
                 <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-                  <li>• Start tracking your blood sugar levels</li>
-                  <li>• Log your meals and activities</li>
-                  <li>• Set medication reminders</li>
-                  <li>• Chat with SantéAI for personalized advice</li>
+                  {(
+                    t("onboarding.whatsNextItems", {
+                      returnObjects: true,
+                    }) as string[]
+                  ).map((item: string, index: number) => (
+                    <li key={index}>• {item}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -791,9 +820,11 @@ export default function Onboarding() {
     <ProtectedRoute requireOnboarding={false}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8">
         <div className="container mx-auto px-4 max-w-2xl">
-          {/* Header with back button */}
+          {/* Header with language switcher */}
           <div className="mb-6">
-            <div className="flex items-center gap-4 mb-4"></div>
+            <div className="flex items-center justify-end gap-4 mb-4">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <Card>
@@ -801,10 +832,13 @@ export default function Onboarding() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Heart className="h-6 w-6 text-primary" />
-                  <CardTitle>SantéAI Setup</CardTitle>
+                  <CardTitle>{t("onboarding.setupTitle")}</CardTitle>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Step {currentStep + 1} of {steps.length}
+                  {t("onboarding.stepOf", {
+                    current: currentStep + 1,
+                    total: steps.length,
+                  })}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -844,17 +878,17 @@ export default function Onboarding() {
                   disabled={currentStep === 0}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+                  {t("onboarding.previous")}
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={!canProceed() || isSaving}
                 >
                   {isSaving
-                    ? "Saving..."
+                    ? t("onboarding.saving")
                     : currentStep === steps.length - 1
-                    ? "Complete Setup"
-                    : "Next"}
+                    ? t("onboarding.completeSetup")
+                    : t("onboarding.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>

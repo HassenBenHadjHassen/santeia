@@ -11,6 +11,7 @@ import {
 } from "components/ui/card";
 import { Heart, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../lib/auth-context";
+import { useTranslation } from "react-i18next";
 
 export function meta() {
   return [
@@ -20,6 +21,7 @@ export function meta() {
 }
 
 export default function Login() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -65,7 +67,7 @@ export default function Login() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -83,10 +85,10 @@ export default function Login() {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back
+              {t("auth.welcomeBack")}
             </h1>
             <p className="text-muted-foreground text-lg">
-              Sign in to your SantéAI account to continue your health journey
+              {t("auth.signInToAccount")}
             </p>
           </div>
         </div>
@@ -94,10 +96,8 @@ export default function Login() {
         <div className="max-w-md mx-auto">
           <Card className="border-border/60 shadow-lg">
             <CardHeader className="text-center pb-4">
-              <CardTitle className="text-xl">Sign In</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your account
-              </CardDescription>
+              <CardTitle className="text-xl">{t("auth.signIn")}</CardTitle>
+              <CardDescription>{t("auth.enterCredentials")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {error && (
@@ -113,13 +113,13 @@ export default function Login() {
                     htmlFor="email"
                     className="text-sm font-medium text-foreground"
                   >
-                    Email Address
+                    {t("auth.emailAddress")}
                   </label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t("auth.enterEmail")}
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -132,14 +132,14 @@ export default function Login() {
                     htmlFor="password"
                     className="text-sm font-medium text-foreground"
                   >
-                    Password
+                    {t("auth.password")}
                   </label>
                   <div className="relative">
                     <Input
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t("auth.enterPassword")}
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -172,14 +172,14 @@ export default function Login() {
                       htmlFor="remember"
                       className="text-sm text-muted-foreground"
                     >
-                      Remember me
+                      {t("auth.rememberMe")}
                     </label>
                   </div>
                   <Link
                     to="/forgot-password"
                     className="text-sm text-primary hover:underline"
                   >
-                    Forgot password?
+                    {t("auth.forgotPassword")}
                   </Link>
                 </div>
 
@@ -188,18 +188,18 @@ export default function Login() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Signing in..." : "Sign in"}
+                  {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Don't have an account?{" "}
+                  {t("auth.dontHaveAccount")}{" "}
                   <Link
                     to="/signup"
                     className="text-primary hover:underline font-medium"
                   >
-                    Sign up
+                    {t("auth.signUp")}
                   </Link>
                 </p>
               </div>

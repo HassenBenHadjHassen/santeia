@@ -30,6 +30,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export function meta() {
   return [
@@ -39,6 +40,7 @@ export function meta() {
 }
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { user, logout, updateProfile, error, clearError } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -80,7 +82,7 @@ export default function Profile() {
         email: formData.email,
       });
 
-      setSuccessMessage("Profile updated successfully!");
+      setSuccessMessage(t("profile.profileUpdatedSuccessfully"));
       setIsEditing(false);
 
       // Clear success message after 3 seconds
@@ -128,10 +130,10 @@ export default function Profile() {
           <div className="mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Profile
+                {t("profile.title")}
               </h1>
               <p className="text-muted-foreground">
-                Manage your account information and preferences
+                {t("profile.description")}
               </p>
             </div>
           </div>
@@ -162,17 +164,17 @@ export default function Profile() {
                     </div>
                     <div>
                       <CardTitle className="text-xl">
-                        Personal Information
+                        {t("profile.personalInformation")}
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        Your basic account information
+                        {t("profile.personalInformationDesc")}
                       </CardDescription>
                     </div>
                   </div>
                   {!isEditing && (
                     <Button variant="outline" size="sm" onClick={handleEdit}>
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                      {t("profile.edit")}
                     </Button>
                   )}
                 </div>
@@ -185,14 +187,14 @@ export default function Profile() {
                         htmlFor="name"
                         className="text-sm font-medium text-foreground"
                       >
-                        Full Name
+                        {t("profile.fullName")}
                       </label>
                       <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="Enter your full name"
+                        placeholder={t("profile.enterFullName")}
                         className="border-border/60 focus:border-primary"
                       />
                     </div>
@@ -201,7 +203,7 @@ export default function Profile() {
                         htmlFor="email"
                         className="text-sm font-medium text-foreground"
                       >
-                        Email Address
+                        {t("profile.emailAddress")}
                       </label>
                       <Input
                         id="email"
@@ -209,18 +211,18 @@ export default function Profile() {
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="Enter your email"
+                        placeholder={t("profile.enterEmail")}
                         className="border-border/60 focus:border-primary"
                       />
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={handleSave} disabled={isSaving}>
                         <Save className="h-4 w-4 mr-2" />
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {isSaving ? t("profile.saving") : t("profile.saveChanges")}
                       </Button>
                       <Button variant="outline" onClick={handleCancel}>
                         <X className="h-4 w-4 mr-2" />
-                        Cancel
+                        {t("profile.cancel")}
                       </Button>
                     </div>
                   </div>
@@ -229,7 +231,7 @@ export default function Profile() {
                     <div className="flex items-center gap-3">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">Name</p>
+                        <p className="text-sm font-medium">{t("profile.fullName")}</p>
                         <p className="text-sm text-muted-foreground">
                           {user!.name}
                         </p>
@@ -238,7 +240,7 @@ export default function Profile() {
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm font-medium">{t("profile.emailAddress")}</p>
                         <p className="text-sm text-muted-foreground">
                           {user!.email}
                         </p>
@@ -247,7 +249,7 @@ export default function Profile() {
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">Member Since</p>
+                        <p className="text-sm font-medium">{t("profile.memberSince")}</p>
                         <p className="text-sm text-muted-foreground">
                           {new Date(user!.createdAt).toLocaleDateString()}
                         </p>
@@ -268,10 +270,10 @@ export default function Profile() {
                     </div>
                     <div>
                       <CardTitle className="text-xl">
-                        Health Information
+                        {t("profile.healthInformation")}
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        Your diabetes management preferences and settings
+                        {t("profile.healthInformationDesc")}
                       </CardDescription>
                     </div>
                   </div>
@@ -281,7 +283,7 @@ export default function Profile() {
                     onClick={() => navigate("/onboarding")}
                   >
                     <Edit className="h-4 w-4 mr-2" />
-                    Edit
+                    {t("profile.edit")}
                   </Button>
                 </div>
               </CardHeader>
@@ -289,46 +291,46 @@ export default function Profile() {
                 {/* Vitals */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-foreground">
-                    Vitals
+                    {t("profile.vitals")}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Date of Birth
+                        {t("profile.dateOfBirth")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
-                          {user!.dateOfBirth || "Not specified"}
+                          {user!.dateOfBirth || t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Height
+                        {t("profile.height")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
                           {user!.heightCm != null
                             ? `${user!.heightCm} cm`
-                            : "Not specified"}
+                            : t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Weight
+                        {t("profile.weight")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
                           {user!.weightKg != null
                             ? `${user!.weightKg} kg`
-                            : "Not specified"}
+                            : t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Blood Pressure
+                        {t("profile.bloodPressure")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
@@ -337,19 +339,19 @@ export default function Profile() {
                             ? `${user!.bloodPressureSystolic}/${
                                 user!.bloodPressureDiastolic
                               } mmHg`
-                            : "Not specified"}
+                            : t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Resting Heart Rate
+                        {t("profile.restingHeartRate")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
                           {user!.heartRate != null
                             ? `${user!.heartRate} bpm`
-                            : "Not specified"}
+                            : t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
@@ -358,28 +360,28 @@ export default function Profile() {
                 {/* Diabetes Type & Management */}
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-foreground">
-                    Diabetes Profile
+                    {t("profile.diabetesProfile")}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Type of Diabetes
+                        {t("profile.typeOfDiabetes")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
                           {user!.diabetesType
                             ? formatDiabetesType(user!.diabetesType)
-                            : "Not specified"}
+                            : t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Diagnosis Date
+                        {t("profile.diagnosisDate")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
-                          {user!.diagnosisDate || "Not specified"}
+                          {user!.diagnosisDate || t("profile.notSpecified")}
                         </p>
                       </div>
                     </div>
@@ -392,47 +394,47 @@ export default function Profile() {
                     <div className="flex items-center gap-2">
                       <Target className="h-5 w-5 text-primary" />
                       <h4 className="text-lg font-semibold text-foreground">
-                        Blood Sugar Targets
+                        {t("profile.bloodSugarTargets")}
                       </h4>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Fasting (mg/dL)
+                          {t("profile.fasting")}
                         </label>
                         <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                           <p className="text-sm font-medium text-foreground">
-                            {user!.bloodSugarTargets.fasting || "Not set"}
+                            {user!.bloodSugarTargets.fasting || t("profile.notSet")}
                           </p>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Before Meals (mg/dL)
+                          {t("profile.beforeMeals")}
                         </label>
                         <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                           <p className="text-sm font-medium text-foreground">
-                            {user!.bloodSugarTargets.beforeMeals || "Not set"}
+                            {user!.bloodSugarTargets.beforeMeals || t("profile.notSet")}
                           </p>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          After Meals (mg/dL)
+                          {t("profile.afterMeals")}
                         </label>
                         <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                           <p className="text-sm font-medium text-foreground">
-                            {user!.bloodSugarTargets.afterMeals || "Not set"}
+                            {user!.bloodSugarTargets.afterMeals || t("profile.notSet")}
                           </p>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Bedtime (mg/dL)
+                          {t("profile.bedtime")}
                         </label>
                         <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                           <p className="text-sm font-medium text-foreground">
-                            {user!.bloodSugarTargets.bedtime || "Not set"}
+                            {user!.bloodSugarTargets.bedtime || t("profile.notSet")}
                           </p>
                         </div>
                       </div>
@@ -446,12 +448,12 @@ export default function Profile() {
                     <div className="flex items-center gap-2">
                       <Activity className="h-5 w-5 text-primary" />
                       <h4 className="text-lg font-semibold text-foreground">
-                        Activity Level
+                        {t("profile.activityLevel")}
                       </h4>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">
-                        Current Activity Level
+                        {t("profile.currentActivityLevel")}
                       </label>
                       <div className="p-3 bg-accent/50 rounded-lg border border-border/60">
                         <p className="text-sm font-medium text-foreground">
@@ -469,7 +471,7 @@ export default function Profile() {
                       <div className="flex items-center gap-2">
                         <Pill className="h-5 w-5 text-primary" />
                         <h4 className="text-lg font-semibold text-foreground">
-                          Current Medications
+                          {t("profile.currentMedications")}
                         </h4>
                       </div>
                       <div className="space-y-3">
@@ -495,7 +497,7 @@ export default function Profile() {
                       <div className="flex items-center gap-2">
                         <Utensils className="h-5 w-5 text-primary" />
                         <h4 className="text-lg font-semibold text-foreground">
-                          Dietary Preferences
+                          {t("profile.dietaryPreferences")}
                         </h4>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -519,7 +521,7 @@ export default function Profile() {
                       <div className="flex items-center gap-2">
                         <Phone className="h-5 w-5 text-primary" />
                         <h4 className="text-lg font-semibold text-foreground">
-                          Emergency Contact
+                          {t("profile.emergencyContact")}
                         </h4>
                       </div>
                       <div className="space-y-3">
@@ -528,17 +530,17 @@ export default function Profile() {
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <p className="font-medium">
-                                {user!.emergencyContact.name || "Not specified"}
+                                {user!.emergencyContact.name || t("profile.notSpecified")}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {user!.emergencyContact.relationship ||
-                                  "Emergency Contact"}
+                                  t("profile.emergencyContact")}
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">
-                              {user!.emergencyContact.phone || "Not specified"}
+                              {user!.emergencyContact.phone || t("profile.notSpecified")}
                             </p>
                           </div>
                         </div>
@@ -555,14 +557,13 @@ export default function Profile() {
                     <div className="text-center py-8">
                       <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No Health Information
+                        {t("profile.noHealthInformation")}
                       </h3>
                       <p className="text-muted-foreground mb-4">
-                        Complete your health profile to get personalized
-                        recommendations
+                        {t("profile.noHealthInformationDesc")}
                       </p>
                       <Button onClick={() => navigate("/onboarding")}>
-                        Complete Health Profile
+                        {t("profile.completeHealthProfile")}
                       </Button>
                     </div>
                   )}
@@ -577,9 +578,9 @@ export default function Profile() {
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl">Account Actions</CardTitle>
+                    <CardTitle className="text-xl">{t("profile.accountActions")}</CardTitle>
                     <CardDescription className="mt-1">
-                      Manage your account settings and data
+                      {t("profile.accountActionsDesc")}
                     </CardDescription>
                   </div>
                 </div>
@@ -592,9 +593,9 @@ export default function Profile() {
                         <Heart className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <h4 className="font-medium">Export Data</h4>
+                        <h4 className="font-medium">{t("profile.exportData")}</h4>
                         <p className="text-sm text-muted-foreground">
-                          Download your health data for your healthcare provider
+                          {t("profile.exportDataDesc")}
                         </p>
                       </div>
                     </div>
@@ -602,7 +603,7 @@ export default function Profile() {
                       variant="outline"
                       onClick={() => navigate("/export")}
                     >
-                      Export PDF
+                      {t("profile.exportPdf")}
                     </Button>
                   </div>
                   <div className="flex items-center justify-between p-4 border border-border/60 rounded-lg hover:bg-accent/50 transition-colors">
@@ -611,14 +612,14 @@ export default function Profile() {
                         <User className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <h4 className="font-medium">Sign Out</h4>
+                        <h4 className="font-medium">{t("profile.signOut")}</h4>
                         <p className="text-sm text-muted-foreground">
-                          Sign out of your account on this device
+                          {t("profile.signOutDesc")}
                         </p>
                       </div>
                     </div>
                     <Button variant="outline" onClick={logout}>
-                      Sign Out
+                      {t("profile.signOut")}
                     </Button>
                   </div>
                 </div>

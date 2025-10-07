@@ -1,0 +1,478 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "submit": "Soumettre",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "app": {
+    "name": "SantéAI",
+    "tagline": "Assistant Santé",
+    "description": "Votre assistant santé personnel"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "diary": "Journal de santé",
+    "medications": "Médicaments",
+    "chat": "Chat",
+    "export": "Exporter les données",
+    "profile": "Profil",
+    "onboarding": "Configuration santé",
+    "login": "Se connecter",
+    "signup": "S'inscrire",
+    "logout": "Se déconnecter"
+  },
+  "auth": {
+    "welcomeBack": "Bon retour",
+    "signInToAccount": "Connectez-vous à votre compte SantéAI pour continuer votre parcours santé",
+    "signIn": "Se connecter",
+    "enterCredentials": "Entrez vos identifiants pour accéder à votre compte",
+    "emailAddress": "Adresse e-mail",
+    "enterEmail": "Entrez votre e-mail",
+    "password": "Mot de passe",
+    "enterPassword": "Entrez votre mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signingIn": "Connexion en cours...",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "signUp": "S'inscrire",
+    "createAccount": "Créer un compte",
+    "signUpDescription": "Créez votre compte SantéAI pour commencer votre parcours santé",
+    "fullName": "Nom complet",
+    "enterFullName": "Entrez votre nom complet",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signInHere": "Connectez-vous ici",
+    "viewProfile": "Voir le profil"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "description": "Aperçu de vos données de santé et métriques",
+    "welcomeMessage": "Bienvenue sur votre tableau de bord santé"
+  },
+  "diary": {
+    "title": "Journal de santé",
+    "description": "Enregistrez vos repas, activités et symptômes",
+    "logMeal": "Enregistrer un repas",
+    "logActivity": "Enregistrer une activité",
+    "logSymptom": "Enregistrer un symptôme"
+  },
+  "medications": {
+    "title": "Médicaments",
+    "description": "Gérez vos médicaments",
+    "addMedication": "Ajouter un médicament",
+    "medicationName": "Nom du médicament",
+    "dosage": "Dosage",
+    "frequency": "Fréquence",
+    "notes": "Notes"
+  },
+  "errors": {
+    "unexpectedError": "Une erreur inattendue s'est produite.",
+    "pageNotFound": "La page demandée n'a pas pu être trouvée.",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "invalidCredentials": "E-mail ou mot de passe invalide.",
+    "emailAlreadyExists": "Un compte avec cet e-mail existe déjà.",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
+    "requiredField": "Ce champ est obligatoire."
+  },
+  "loading": {
+    "loadingSanteAI": "Chargement de SantéAI...",
+    "settingUpAssistant": "Configuration de votre assistant santé"
+  },
+  "healthDashboard": {
+    "period": "Période :",
+    "periods": {
+      "7d": "7 Jours",
+      "30d": "30 Jours",
+      "90d": "90 Jours",
+      "1y": "1 An"
+    },
+    "noData": "Aucune donnée",
+    "tabs": {
+      "overview": "Aperçu",
+      "insights": "Insights"
+    },
+    "recentMetrics": "Métriques récentes",
+    "recentBloodSugar": "Glycémie récente",
+    "bmiCalculatedAutomatically": "L'IMC est calculé automatiquement",
+    "bmiDescription": "Votre IMC est calculé à partir de vos mesures de poids et de taille. La courbe ci-dessus montre comment votre IMC change au fil du temps lorsque vous enregistrez de nouvelles données de poids.",
+    "updateBmiCurve": "Pour mettre à jour votre courbe d'IMC, ajoutez de nouvelles mesures de poids dans la section Poids.",
+    "value": "Valeur",
+    "bloodPressureValue": "Tension artérielle (systolique/diastolique)",
+    "unit": "Unité",
+    "readingType": "Type de lecture",
+    "notes": "Notes (optionnel)",
+    "notesPlaceholder": "Ajoutez des notes...",
+    "dateTime": "Date et heure",
+    "useCurrentTime": "Utiliser l'heure actuelle",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer",
+    "loadingMetrics": "Chargement des métriques...",
+    "insights": "Insights santé",
+    "insightsDescription": "Cliquez sur n'importe quelle carte de métrique ci-dessus pour voir des insights détaillés, des tendances et ajouter de nouvelles données.",
+    "trend": "Tendance",
+    "addNewReading": "Ajouter une nouvelle lecture",
+    "backToOverview": "Retour à l'aperçu",
+    "bloodSugarTypes": {
+      "FASTING": "À jeun",
+      "BEFORE_MEAL": "Avant le repas",
+      "AFTER_MEAL": "Après le repas",
+      "BEDTIME": "Au coucher",
+      "RANDOM": "Aléatoire",
+      "POST_EXERCISE": "Après l'exercice"
+    },
+    "metricTypes": {
+      "weight": "Poids",
+      "height": "Taille",
+      "blood_pressure": "Tension artérielle",
+      "heart_rate": "Fréquence cardiaque",
+      "blood_sugar": "Glycémie",
+      "bmi": "IMC"
+    }
+  },
+  "chat": {
+    "description": "Discutez avec votre assistant de santé pour des conseils et un support personnalisés",
+    "description2": "Discutez avec votre assistant de santé. Cela n'est pas un conseil médical.",
+    "welcomeTitle": "Bienvenue sur SantéAI",
+    "welcomeMessage": "Je suis là pour vous aider avec vos préoccupations de santé. Veuillez décrire tout symptôme, poser des questions sur votre santé ou partager des informations sur votre mode de vie.",
+    "quickSuggestions": "Suggestions rapides pour commencer :",
+    "disclaimer": "Rappel : Cette conversation est à des fins d'information uniquement. Consultez toujours un professionnel de la santé pour des conseils médicaux.",
+    "typing": "en train d'écrire...",
+    "listening": "Écoute…",
+    "startRecording": "Commencer l'enregistrement",
+    "stopRecording": "Arrêter l'enregistrement",
+    "stop": "Arrêter",
+    "quickQuestions": "Questions rapides :",
+    "placeholder": "Décrivez vos symptômes, posez des questions sur votre santé ou partagez vos préoccupations...",
+    "sendInstructions": "Appuyez sur Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne",
+    "newChat": "Nouveau Chat",
+    "dismiss": "Ignorer",
+    "noActiveUser": "Aucun utilisateur actif. Veuillez vous reconnecter.",
+    "authRequired": "Authentification requise. Veuillez vous reconnecter.",
+    "failedToStartConversation": "Échec du démarrage d'une nouvelle conversation.",
+    "failedToSendMessage": "Échec de l'envoi du message. Veuillez réessayer.",
+    "failedToLoadConversation": "Échec du chargement de la conversation.",
+    "failedToFetchConversations": "Échec de la récupération des conversations.",
+    "welcomeMessageContent": "Bonjour ! Je suis votre assistant santé. Comment puis-je vous aider aujourd'hui ?",
+    "promptSuggestions": {
+      "diagnoseBp": "Analyser mes lectures de tension artérielle et tendances",
+      "diagnoseBs": "Examiner mes modèles de glycémie et contrôle",
+      "overallHealth": "Donnez-moi une évaluation globale de ma santé",
+      "weightTrends": "Analyser mes tendances de poids et changements d'IMC",
+      "symptomsFatigue": "Je me sens fatigué(e) récemment, qu'est-ce que cela pourrait signifier ?",
+      "symptomsHeadache": "J'ai des maux de tête fréquents, devrais-je m'inquiéter ?",
+      "dietAdvice": "Quels changements alimentaires devrais-je considérer ?",
+      "exercisePlan": "Suggérer un plan d'exercice pour mon état de santé"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "description": "Gérez vos informations de compte et préférences",
+    "personalInformation": "Informations personnelles",
+    "personalInformationDesc": "Vos informations de compte de base",
+    "edit": "Modifier",
+    "fullName": "Nom complet",
+    "enterFullName": "Entrez votre nom complet",
+    "emailAddress": "Adresse e-mail",
+    "enterEmail": "Entrez votre e-mail",
+    "memberSince": "Membre depuis",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "cancel": "Annuler",
+    "profileUpdatedSuccessfully": "Profil mis à jour avec succès !",
+    "healthInformation": "Informations de santé",
+    "healthInformationDesc": "Vos préférences et paramètres de gestion du diabète",
+    "vitals": "Signes vitaux",
+    "dateOfBirth": "Date de naissance",
+    "height": "Taille",
+    "weight": "Poids",
+    "bloodPressure": "Tension artérielle",
+    "restingHeartRate": "Fréquence cardiaque au repos",
+    "notSpecified": "Non spécifié",
+    "diabetesProfile": "Profil diabétique",
+    "typeOfDiabetes": "Type de diabète",
+    "diagnosisDate": "Date de diagnostic",
+    "bloodSugarTargets": "Objectifs de glycémie",
+    "fasting": "À jeun (mg/dL)",
+    "beforeMeals": "Avant les repas (mg/dL)",
+    "afterMeals": "Après les repas (mg/dL)",
+    "bedtime": "Au coucher (mg/dL)",
+    "notSet": "Non défini",
+    "activityLevel": "Niveau d'activité",
+    "currentActivityLevel": "Niveau d'activité actuel",
+    "currentMedications": "Médicaments actuels",
+    "dietaryPreferences": "Préférences alimentaires",
+    "emergencyContact": "Contact d'urgence",
+    "noHealthInformation": "Aucune information de santé",
+    "noHealthInformationDesc": "Complétez votre profil de santé pour obtenir des recommandations personnalisées",
+    "completeHealthProfile": "Compléter le profil de santé",
+    "accountActions": "Actions du compte",
+    "accountActionsDesc": "Gérez les paramètres et données de votre compte",
+    "exportData": "Exporter les données",
+    "exportDataDesc": "Téléchargez vos données de santé pour votre professionnel de santé",
+    "exportPdf": "Exporter PDF",
+    "signOut": "Se déconnecter",
+    "signOutDesc": "Se déconnecter de votre compte sur cet appareil"
+  },
+  "onboarding": {
+    "title": "Bienvenue sur SantéAI - Configuration",
+    "description": "Configurez votre profil personnalisé de gestion du diabète",
+    "welcomeTitle": "Bienvenue sur SantéAI !",
+    "welcomeDescription": "Votre assistant santé personnel pour la gestion du diabète. Nous vous aiderons à suivre votre glycémie, gérer vos médicaments et prendre des décisions de santé éclairées.",
+    "importantNote": "Important : SantéAI fournit des conseils et un support éducatifs. Consultez toujours votre professionnel de santé pour des conseils médicaux et des décisions de traitement.",
+    "setupTitle": "Configuration SantéAI",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "vitalsPersonalInfo": "Signes vitaux et infos personnelles",
+    "vitalsPersonalInfoDesc": "Ajoutez votre taille, poids, tension artérielle et date de naissance",
+    "diabetesInformation": "Informations sur le diabète",
+    "diabetesInformationDesc": "Parlez-nous de votre type de diabète et de votre diagnostic",
+    "medicationsTreatment": "Médicaments et traitement",
+    "medicationsTreatmentDesc": "Quels médicaments prenez-vous actuellement ?",
+    "bloodSugarTargets": "Objectifs de glycémie",
+    "bloodSugarTargetsDesc": "Définissez vos objectifs de glycémie personnalisés",
+    "lifestyleDiet": "Mode de vie et alimentation",
+    "lifestyleDietDesc": "Aidez-nous à comprendre votre niveau d'activité et vos préférences alimentaires",
+    "emergencyContact": "Contact d'urgence",
+    "completeSetup": "Configuration terminée",
+    "completeSetupDesc": "Examinez vos informations et commencez votre parcours",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "saving": "Enregistrement...",
+    "dateOfBirthOptional": "Date de naissance (optionnel)",
+    "heightCm": "Taille (cm)",
+    "heightPlaceholder": "ex., 175",
+    "weightKg": "Poids (kg)",
+    "weightPlaceholder": "ex., 70",
+    "bpSystolic": "TA Systolique (mmHg)",
+    "bpSystolicPlaceholder": "ex., 120",
+    "bpDiastolic": "TA Diastolique (mmHg)",
+    "bpDiastolicPlaceholder": "ex., 80",
+    "restingHeartRateBpm": "Fréquence cardiaque au repos (bpm)",
+    "heartRatePlaceholder": "ex., 70",
+    "whatTypeOfDiabetes": "Quel type de diabète avez-vous ?",
+    "whenDiagnosedOptional": "Quand avez-vous été diagnostiqué ? (optionnel)",
+    "currentMedications": "Médicaments actuels",
+    "selectMedicationsDesc": "Sélectionnez tous les médicaments que vous prenez actuellement (vous pouvez en ajouter plus tard)",
+    "setBloodSugarGoals": "Définissez vos objectifs de glycémie personnalisés (mg/dL). Ceux-ci peuvent être ajustés plus tard.",
+    "fastingMorning": "À jeun (matin)",
+    "fastingPlaceholder": "80-130",
+    "beforeMeals": "Avant les repas",
+    "beforeMealsPlaceholder": "80-130",
+    "afterMeals2Hours": "Après les repas (2 heures)",
+    "afterMealsPlaceholder": "<180",
+    "bedtime": "Au coucher",
+    "bedtimePlaceholder": "100-140",
+    "activityLevel": "Niveau d'activité",
+    "dietaryPreferences": "Préférences alimentaires",
+    "dietaryPreferencesDesc": "Sélectionnez toutes les préférences ou restrictions alimentaires que vous suivez",
+    "emergencyContactDesc": "Ajoutez un contact d'urgence pour les alertes de sécurité et notifications",
+    "fullName": "Nom complet",
+    "enterFullName": "Entrez le nom complet",
+    "phoneNumber": "Numéro de téléphone",
+    "phonePlaceholder": "+1 (555) 123-4567",
+    "relationship": "Relation",
+    "relationshipPlaceholder": "ex., Conjoint, Parent, Frère/Sœur, Ami",
+    "setupComplete": "Configuration terminée !",
+    "setupCompleteDesc": "Votre profil personnalisé de gestion du diabète est prêt. Vous pouvez toujours mettre à jour ces paramètres dans votre profil plus tard.",
+    "whatsNext": "Et maintenant ?",
+    "whatsNextItems": [
+      "Commencez à suivre vos niveaux de glycémie",
+      "Enregistrez vos repas et activités",
+      "Définissez des rappels de médicaments",
+      "Discutez avec SantéAI pour des conseils personnalisés"
+    ],
+    "diabetesTypes": {
+      "type1": "Diabète de type 1",
+      "type2": "Diabète de type 2",
+      "gestational": "Diabète gestationnel",
+      "prediabetes": "Prédiabète",
+      "other": "Autre"
+    },
+    "activityLevels": {
+      "sedentary": "Sédentaire (peu ou pas d'exercice)",
+      "light": "Activité légère (1-3 jours/semaine)",
+      "moderate": "Activité modérée (3-5 jours/semaine)",
+      "active": "Actif (6-7 jours/semaine)",
+      "veryActive": "Très actif (deux fois par jour ou exercice intense)"
+    },
+    "dietaryOptions": {
+      "lowCarb": "Faible en glucides",
+      "mediterranean": "Méditerranéen",
+      "vegetarian": "Végétarien",
+      "vegan": "Végan",
+      "glutenFree": "Sans gluten",
+      "dairyFree": "Sans produits laitiers",
+      "keto": "Keto",
+      "intermittentFasting": "Jeûne intermittent"
+    },
+    "medications": {
+      "metformin": "Metformine",
+      "insulinLongActing": "Insuline (action prolongée)",
+      "insulinShortActing": "Insuline (action rapide)",
+      "sulfonylureas": "Sulfonylurées",
+      "dpp4Inhibitors": "Inhibiteurs DPP-4",
+      "glp1ReceptorAgonists": "Agonistes des récepteurs GLP-1",
+      "sglt2Inhibitors": "Inhibiteurs SGLT2",
+      "thiazolidinediones": "Thiazolidinediones",
+      "alphaGlucosidaseInhibitors": "Inhibiteurs de l'alpha-glucosidase"
+    }
+  },
+  "signup": {
+    "title": "S'inscrire - SantéAI",
+    "description": "Créez votre compte SantéAI",
+    "createAccount": "Créez votre compte",
+    "joinSanteAI": "Rejoignez SantéAI et commencez votre parcours de santé personnalisé",
+    "getStarted": "Commencer",
+    "fillInformation": "Remplissez vos informations pour créer votre compte",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Jean",
+    "lastName": "Nom de famille",
+    "lastNamePlaceholder": "Dupont",
+    "emailAddress": "Adresse e-mail",
+    "emailPlaceholder": "jean@exemple.com",
+    "password": "Mot de passe",
+    "createStrongPassword": "Créez un mot de passe fort",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
+    "passwordRequirements": "Exigences du mot de passe :",
+    "passwordRequirementsList": {
+      "minLength": "Au moins 8 caractères",
+      "uppercase": "Contient une lettre majuscule",
+      "lowercase": "Contient une lettre minuscule",
+      "number": "Contient un chiffre"
+    },
+    "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+    "agreeToTerms": "J'accepte les",
+    "termsOfService": "Conditions d'utilisation",
+    "and": "et",
+    "privacyPolicy": "Politique de confidentialité",
+    "creatingAccount": "Création du compte...",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signIn": "Se connecter",
+    "validationErrors": {
+      "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+      "agreeToTerms": "Veuillez accepter les conditions d'utilisation",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères"
+    }
+  },
+  "export": {
+    "title": "Exporter le rapport de santé",
+    "description": "Générez un rapport PDF complet avec des analyses alimentées par l'IA de vos données de santé pour votre professionnel de santé",
+    "whatsIncluded": "Ce qui est inclus dans votre rapport",
+    "features": {
+      "healthData": {
+        "title": "Données de santé",
+        "description": "Glycémie, repas, activités"
+      },
+      "aiSummary": {
+        "title": "Résumé IA",
+        "description": "Analyses et insights personnalisés"
+      },
+      "aiConversations": {
+        "title": "Conversations IA",
+        "description": "Historique des discussions et recommandations"
+      },
+      "alertsInsights": {
+        "title": "Alertes et insights",
+        "description": "Alertes de santé et recommandations"
+      }
+    }
+  },
+  "pdfExport": {
+    "title": "Exporter le rapport de santé",
+    "description": "Générez un rapport PDF complet de vos données de santé pour votre médecin ou endocrinologue.",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "reportWillInclude": "Le rapport inclura :",
+    "features": {
+      "bloodSugarReadings": "Lectures de glycémie et tendances",
+      "mealDiary": "Journal des repas avec informations nutritionnelles",
+      "physicalActivity": "Journal d'activité physique",
+      "medications": "Médicaments actuels et dosages",
+      "healthMetrics": "Métriques de santé (poids, tension artérielle, etc.)",
+      "aiSummary": "Résumé de santé et analyses alimentés par l'IA",
+      "aiConversations": "Historique des conversations IA et recommandations",
+      "healthAlerts": "Alertes de santé et notifications",
+      "recommendations": "Recommandations personnalisées",
+      "trendAnalysis": "Analyse complète des tendances"
+    },
+    "generateButton": "Générer le rapport de santé",
+    "generatingButton": "Génération du PDF...",
+    "errorMessage": "Erreur lors de la génération du rapport PDF. Veuillez réessayer.",
+    "aiSummaryError": "La génération du résumé IA a échoué. Veuillez consulter les données détaillées ci-dessous.",
+    "aiPrompt": {
+      "title": "Analysez les données de santé et fournissez un résumé propre et professionnel.",
+      "instructions": "Rédigez une analyse professionnelle des données de santé couvrant :",
+      "requirements": {
+        "noGreetings": "Aucune salutation, avertissement ou refus",
+        "noMarkdown": "Aucun formatage markdown (pas de **gras** ou ## en-têtes)",
+        "noMedicalAdvice": "Aucun conseil médical ou recommandation",
+        "plainText": "Rédigez en paragraphes de texte brut",
+        "directFactual": "Soyez direct et factuel",
+        "maxParagraphs": "2-3 paragraphes maximum"
+      }
+    },
+    "sections": {
+      "summary": "Résumé",
+      "bloodSugarTrends": "Tendances de glycémie"
+    }
+  },
+  "sidebar": {
+    "navigation": {
+      "dashboard": {
+        "name": "Tableau de bord",
+        "description": "Aperçu de vos données de santé"
+      },
+      "diary": {
+        "name": "Journal de santé",
+        "description": "Enregistrez les repas, les activités et les symptômes"
+      },
+      "medications": {
+        "name": "Médicaments",
+        "description": "Gérez vos médicaments"
+      },
+      "chat": {
+        "name": "Chat",
+        "description": "Discutez avec votre assistant de santé",
+        "recentConversations": "Conversations récentes",
+        "startNewChat": "Commencer une nouvelle conversation"
+      },
+      "export": {
+        "name": "Exporter les données",
+        "description": "Téléchargez vos rapports de santé"
+      }
+    },
+    "chat": {
+      "startNewChat": "Commencer un nouveau chat",
+      "recentConversations": "Conversations récentes",
+      "loading": "Chargement…",
+      "noConversations": "Aucune conversation pour le moment",
+      "untitledConversation": "Conversation sans titre",
+      "deleteConversation": "Supprimer la conversation"
+    }
+  },
+  "mobileMenu": {
+    "appName": "SantéAI",
+    "navigation": {
+      "dashboard": "Tableau de bord",
+      "diary": "Journal de santé",
+      "medications": "Médicaments",
+      "chat": "Chat",
+      "export": "Exporter les données",
+      "profile": "Profil"
+    }
+  }
+}

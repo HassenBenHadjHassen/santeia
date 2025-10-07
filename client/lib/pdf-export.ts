@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import type { User } from "./api/types";
 import type { BloodSugarReading } from "./api/services/bloodSugarService";
 import type { Meal } from "./api/services/mealService";
@@ -21,8 +21,22 @@ interface ReportData {
   activities: PhysicalActivity[];
   medications: Medication[];
   healthMetrics: HealthMetric[];
+  alerts: any[];
+  aiSummary: string;
   startDate: string;
   endDate: string;
+}
+
+interface TranslationStrings {
+  aiSummaryTitle: string;
+  bloodSugarTitle: string;
+  mealsTitle: string;
+  activitiesTitle: string;
+  medicationsTitle: string;
+  healthMetricsTitle: string;
+  alertsTitle: string;
+  summaryTitle: string;
+  trendsTitle: string;
 }
 
 export class PDFExportService {
@@ -32,30 +46,51 @@ export class PDFExportService {
     this.doc = new jsPDF();
   }
 
-  async generateHealthReport(data: ReportData): Promise<Blob> {
+  async generateHealthReport(
+    data: ReportData,
+    translations?: TranslationStrings
+  ): Promise<Blob> {
     this.doc = new jsPDF();
 
     // Add header
     this.addHeader(data.user, data.startDate, data.endDate);
 
+    // Add AI summary section
+    this.addAISummary(data.aiSummary, translations?.aiSummaryTitle);
+
     // Add summary section
-    this.addSummary(data);
+    this.addSummary(data, translations?.summaryTitle);
 
     // Add blood sugar section with trends
-    this.addBloodSugarSection(data.bloodSugarReadings);
-    this.addBloodSugarTrends(data.bloodSugarReadings);
+    this.addBloodSugarSection(
+      data.bloodSugarReadings,
+      translations?.bloodSugarTitle
+    );
+    this.addBloodSugarTrends(
+      data.bloodSugarReadings,
+      translations?.trendsTitle
+    );
 
     // Add meals section
-    this.addMealsSection(data.meals);
+    this.addMealsSection(data.meals, translations?.mealsTitle);
 
     // Add activities section
-    this.addActivitiesSection(data.activities);
+    this.addActivitiesSection(data.activities, translations?.activitiesTitle);
 
     // Add medications section
-    this.addMedicationsSection(data.medications);
+    this.addMedicationsSection(
+      data.medications,
+      translations?.medicationsTitle
+    );
 
     // Add health metrics section
-    this.addHealthMetricsSection(data.healthMetrics);
+    this.addHealthMetricsSection(
+      data.healthMetrics,
+      translations?.healthMetricsTitle
+    );
+
+    // Add alerts section
+    this.addAlertsSection(data.alerts, translations?.alertsTitle);
 
     // Add footer
     this.addFooter();
@@ -92,10 +127,14 @@ export class PDFExportService {
     this.doc.line(20, 85, 190, 85);
   }
 
-  private addSummary(data: ReportData) {
+  private addSummary(data: ReportData, title?: string) {
     this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
-    this.doc.text("Summary", 20, 100);
+    // Get the final Y position from the AI summary section
+    const lastTableY = (this.doc as any).lastAutoTable
+      ? (this.doc as any).lastAutoTable.finalY
+      : 100; // Default fallback
+    this.doc.text(title || "Summary", 20, lastTableY + 20);
 
     // Calculate summary statistics
     const avgBloodSugar = this.calculateAverageBloodSugar(
@@ -111,12 +150,16 @@ export class PDFExportService {
     );
     const netCalories = totalCalories - totalCaloriesBurned;
 
-    this.doc.setFontSize(10);
+    this.doc.setFontSize(11);
     this.doc.setFont("helvetica", "normal");
 
-    let yPos = 110;
+    let yPos = lastTableY + 30;
 
     // Blood sugar insights
+    if (yPos > 250) {
+      this.doc.addPage();
+      yPos = 20;
+    }
     this.doc.text(`Average Blood Sugar: ${avgBloodSugar} mg/dL`, 20, yPos);
     yPos += 10;
 
@@ -125,6 +168,10 @@ export class PDFExportService {
     if (bloodSugarValues.length > 0) {
       const minBS = Math.min(...bloodSugarValues);
       const maxBS = Math.max(...bloodSugarValues);
+      if (yPos > 250) {
+        this.doc.addPage();
+        yPos = 20;
+      }
       this.doc.text(`Blood Sugar Range: ${minBS} - ${maxBS} mg/dL`, 20, yPos);
       yPos += 10;
 
@@ -144,6 +191,10 @@ export class PDFExportService {
     }
 
     // Nutrition insights
+    if (yPos > 250) {
+      this.doc.addPage();
+      yPos = 20;
+    }
     this.doc.setFont("helvetica", "bold");
     this.doc.text("Nutrition Summary:", 20, yPos);
     yPos += 10;
@@ -165,6 +216,10 @@ export class PDFExportService {
     yPos += 10;
 
     // Activity insights
+    if (yPos > 250) {
+      this.doc.addPage();
+      yPos = 20;
+    }
     const totalActivityMinutes = data.activities.reduce(
       (sum, activity) => sum + activity.duration,
       0
@@ -207,16 +262,83 @@ export class PDFExportService {
       yPos += 10;
     }
 
+    // AI and conversation insights
+    this.doc.setFont("helvetica", "bold");
+    this.doc.text("AI & Digital Health Summary:", 20, yPos);
+    yPos += 10;
+    this.doc.setFont("helvetica", "normal");
+
+    this.doc.text(`Health Alerts: ${data.alerts.length}`, 20, yPos);
+    yPos += 10;
+
+    if (data.alerts.length > 0) {
+      const highPriorityAlerts = data.alerts.filter(
+        (a) => (a.priority || "medium") === "high"
+      ).length;
+      if (highPriorityAlerts > 0) {
+        this.doc.text(`High Priority Alerts: ${highPriorityAlerts}`, 20, yPos);
+        yPos += 10;
+      }
+    }
+
     this.doc.setLineWidth(0.3);
     this.doc.line(20, yPos + 5, 190, yPos + 5);
+
+    // Update the lastAutoTable position so other sections know where to start
+    (this.doc as any).lastAutoTable = { finalY: yPos + 15 };
   }
 
-  private addBloodSugarSection(readings: BloodSugarReading[]) {
+  private addAISummary(aiSummary: string, title?: string) {
+    if (!aiSummary) return;
+
+    // Clean up AI summary to remove any remaining unwanted content
+    let cleanSummary = aiSummary
+      .replace(/^(Hello\.?\s*|Hi there\.?\s*)/i, "")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(
+        /\s*If you notice concerning changes, please discuss them with your healthcare provider\.?\s*/gi,
+        ""
+      )
+      .trim();
+
+    this.doc.setFontSize(14);
+    this.doc.setFont("helvetica", "bold");
+    this.doc.text(title || "AI Health Summary", 20, 100);
+
+    this.doc.setFontSize(10);
+    this.doc.setFont("helvetica", "normal");
+
+    // Split the summary into lines that fit the page width
+    const maxWidth = 170;
+    const lines = this.doc.splitTextToSize(cleanSummary, maxWidth);
+
+    let yPos = 110;
+    lines.forEach((line: string) => {
+      // Check if we need a new page
+      if (yPos > 250) {
+        this.doc.addPage();
+        yPos = 20;
+      }
+      this.doc.text(line, 20, yPos);
+      yPos += 5;
+    });
+
+    this.doc.setLineWidth(0.3);
+    this.doc.line(20, yPos + 5, 190, yPos + 5);
+
+    // Update the lastAutoTable position so other sections know where to start
+    (this.doc as any).lastAutoTable = { finalY: yPos + 15 };
+  }
+
+  private addBloodSugarSection(readings: BloodSugarReading[], title?: string) {
     if (readings.length === 0) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
-    this.doc.text("Blood Sugar Readings", 20, 130);
+    const lastTableY = (this.doc as any).lastAutoTable
+      ? (this.doc as any).lastAutoTable.finalY
+      : 130;
+    this.doc.text(title || "Blood Sugar Readings", 20, lastTableY + 20);
 
     const tableData = readings.map((reading) => [
       this.formatDate(reading.timestamp),
@@ -226,24 +348,24 @@ export class PDFExportService {
       reading.notes || "",
     ]);
 
-    (this.doc as any).autoTable({
+    autoTable(this.doc, {
       head: [["Date", "Value", "Unit", "Type", "Notes"]],
       body: tableData,
-      startY: 140,
-      styles: { fontSize: 8 },
+      startY: lastTableY + 30,
+      styles: { fontSize: 9 },
       headStyles: { fillColor: [66, 139, 202] },
     });
   }
 
-  private addBloodSugarTrends(readings: BloodSugarReading[]) {
+  private addBloodSugarTrends(readings: BloodSugarReading[], title?: string) {
     if (readings.length < 2) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
     const lastTableY = (this.doc as any).lastAutoTable
       ? (this.doc as any).lastAutoTable.finalY
       : 140;
-    this.doc.text("Blood Sugar Trends", 20, lastTableY + 20);
+    this.doc.text(title || "Blood Sugar Trends", 20, lastTableY + 20);
 
     // Calculate trends
     const sortedReadings = readings.sort(
@@ -263,7 +385,7 @@ export class PDFExportService {
 
     let yPos = lastTableY + 35;
 
-    this.doc.setFontSize(10);
+    this.doc.setFontSize(11);
     this.doc.setFont("helvetica", "normal");
 
     if (fastingReadings.length > 0) {
@@ -348,15 +470,15 @@ export class PDFExportService {
     }
   }
 
-  private addMealsSection(meals: Meal[]) {
+  private addMealsSection(meals: Meal[], title?: string) {
     if (meals.length === 0) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
     const lastTableY = (this.doc as any).lastAutoTable
       ? (this.doc as any).lastAutoTable.finalY
       : 140;
-    this.doc.text("Meals", 20, lastTableY + 20);
+    this.doc.text(title || "Meals", 20, lastTableY + 20);
 
     const tableData = meals.map((meal) => [
       this.formatDate(meal.timestamp),
@@ -368,7 +490,7 @@ export class PDFExportService {
       (meal.fats || 0).toString(),
     ]);
 
-    (this.doc as any).autoTable({
+    autoTable(this.doc, {
       head: [
         [
           "Date",
@@ -382,20 +504,20 @@ export class PDFExportService {
       ],
       body: tableData,
       startY: lastTableY + 30,
-      styles: { fontSize: 8 },
+      styles: { fontSize: 9 },
       headStyles: { fillColor: [40, 167, 69] },
     });
   }
 
-  private addActivitiesSection(activities: PhysicalActivity[]) {
+  private addActivitiesSection(activities: PhysicalActivity[], title?: string) {
     if (activities.length === 0) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
     const lastTableY = (this.doc as any).lastAutoTable
       ? (this.doc as any).lastAutoTable.finalY
       : 140;
-    this.doc.text("Physical Activities", 20, lastTableY + 20);
+    this.doc.text(title || "Physical Activities", 20, lastTableY + 20);
 
     const tableData = activities.map((activity) => [
       this.formatDate(activity.timestamp),
@@ -406,26 +528,26 @@ export class PDFExportService {
       activity.notes || "",
     ]);
 
-    (this.doc as any).autoTable({
+    autoTable(this.doc, {
       head: [
         ["Date", "Name", "Type", "Duration (min)", "Calories Burned", "Notes"],
       ],
       body: tableData,
       startY: lastTableY + 30,
-      styles: { fontSize: 8 },
+      styles: { fontSize: 9 },
       headStyles: { fillColor: [255, 193, 7] },
     });
   }
 
-  private addMedicationsSection(medications: Medication[]) {
+  private addMedicationsSection(medications: Medication[], title?: string) {
     if (medications.length === 0) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
     const lastTableY = (this.doc as any).lastAutoTable
       ? (this.doc as any).lastAutoTable.finalY
       : 140;
-    this.doc.text("Medications", 20, lastTableY + 20);
+    this.doc.text(title || "Medications", 20, lastTableY + 20);
 
     const tableData = medications.map((medication) => [
       medication.name,
@@ -437,7 +559,7 @@ export class PDFExportService {
       medication.instructions || "",
     ]);
 
-    (this.doc as any).autoTable({
+    autoTable(this.doc, {
       head: [
         [
           "Name",
@@ -451,36 +573,101 @@ export class PDFExportService {
       ],
       body: tableData,
       startY: lastTableY + 30,
-      styles: { fontSize: 8 },
+      styles: { fontSize: 9 },
       headStyles: { fillColor: [220, 53, 69] },
     });
   }
 
-  private addHealthMetricsSection(metrics: HealthMetric[]) {
+  private addHealthMetricsSection(metrics: HealthMetric[], title?: string) {
     if (metrics.length === 0) return;
 
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setFont("helvetica", "bold");
     const lastTableY = (this.doc as any).lastAutoTable
       ? (this.doc as any).lastAutoTable.finalY
       : 140;
-    this.doc.text("Health Metrics", 20, lastTableY + 20);
+    this.doc.text(title || "Health Metrics", 20, lastTableY + 20);
 
     const tableData = metrics.map((metric) => [
       this.formatDate(metric.timestamp),
-      metric.type.replace("_", " ").toUpperCase(),
+      this.formatMetricType(metric.metricType),
       metric.value,
       metric.unit,
       metric.notes || "",
     ]);
 
-    (this.doc as any).autoTable({
+    autoTable(this.doc, {
       head: [["Date", "Type", "Value", "Unit", "Notes"]],
       body: tableData,
       startY: lastTableY + 30,
-      styles: { fontSize: 8 },
+      styles: { fontSize: 9 },
       headStyles: { fillColor: [108, 117, 125] },
     });
+  }
+
+  private addAlertsSection(alerts: any[], title?: string) {
+    if (alerts.length === 0) return;
+
+    this.doc.setFontSize(14);
+    this.doc.setFont("helvetica", "bold");
+    const lastTableY = (this.doc as any).lastAutoTable
+      ? (this.doc as any).lastAutoTable.finalY
+      : 140;
+    this.doc.text(
+      title || "Health Alerts & Recommendations",
+      20,
+      lastTableY + 20
+    );
+
+    // Show recent alerts
+    const recentAlerts = alerts.slice(0, 10);
+    let yPos = lastTableY + 35;
+
+    this.doc.setFontSize(11);
+    this.doc.setFont("helvetica", "normal");
+
+    recentAlerts.forEach((alert, index) => {
+      // Alert priority color
+      const priority = alert.priority || "medium";
+      const priorityColor =
+        priority === "high"
+          ? [220, 53, 69]
+          : priority === "medium"
+          ? [255, 193, 7]
+          : [40, 167, 69];
+
+      this.doc.setFillColor(
+        priorityColor[0],
+        priorityColor[1],
+        priorityColor[2]
+      );
+      this.doc.rect(15, yPos - 2, 3, 3, "F");
+
+      this.doc.setFont("helvetica", "bold");
+      this.doc.text(`${alert.title}`, 25, yPos);
+      yPos += 6;
+
+      this.doc.setFont("helvetica", "normal");
+      this.doc.text(
+        `Priority: ${(alert.priority || "medium").toUpperCase()}`,
+        25,
+        yPos
+      );
+      yPos += 4;
+      this.doc.text(`Date: ${this.formatDate(alert.createdAt)}`, 25, yPos);
+      yPos += 4;
+
+      // Alert message
+      const message =
+        alert.message.substring(0, 150) +
+        (alert.message.length > 150 ? "..." : "");
+      this.doc.text(`Message: ${message}`, 25, yPos);
+      yPos += 8;
+    });
+
+    if (alerts.length > 10) {
+      this.doc.text(`... and ${alerts.length - 10} more alerts`, 20, yPos);
+    }
   }
 
   private addFooter() {
@@ -513,6 +700,46 @@ export class PDFExportService {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  private formatMetricType(metricType: string | undefined): string {
+    if (!metricType) return "UNKNOWN";
+
+    const typeMap: { [key: string]: string } = {
+      // Database enum values (uppercase)
+      WEIGHT: "Weight",
+      BLOOD_PRESSURE_SYSTOLIC: "Systolic BP",
+      BLOOD_PRESSURE_DIASTOLIC: "Diastolic BP",
+      CHOLESTEROL_TOTAL: "Total Cholesterol",
+      CHOLESTEROL_HDL: "HDL Cholesterol",
+      CHOLESTEROL_LDL: "LDL Cholesterol",
+      TRIGLYCERIDES: "Triglycerides",
+      HEART_RATE: "Heart Rate",
+      BMI: "BMI",
+      // Frontend API types (lowercase)
+      weight: "Weight",
+      height: "Height",
+      bmi: "BMI",
+      temperature: "Temperature",
+      heart_rate: "Heart Rate",
+      blood_pressure: "Blood Pressure",
+      cholesterol: "Cholesterol",
+    };
+
+    // Debug: log the actual metric type to see what we're getting
+    console.log(
+      "Metric type received:",
+      metricType,
+      "Type:",
+      typeof metricType
+    );
+    console.log("Available keys in typeMap:", Object.keys(typeMap));
+
+    const result =
+      typeMap[metricType] || metricType.replace("_", " ").toUpperCase();
+    console.log("Result:", result);
+
+    return result;
   }
 }
 

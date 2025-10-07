@@ -7,19 +7,13 @@ import bcrypt from "bcryptjs";
 export class UserRepository extends BaseRepository<User> {
   public async create(data: Partial<User>): Promise<User> {
     return this.handleDatabaseOperation(async () => {
-      // Hash password if provided
-      let hashedPassword: string | undefined;
-      if (data.password) {
-        hashedPassword = await bcrypt.hash(data.password, 12);
-      }
-
       const prismaUser = await this.prisma.user.create({
         data: {
           email: data.email!,
           name: data.name!,
           role: data.role || "USER",
           isActive: data.isActive ?? true,
-          password: hashedPassword,
+          password: data.password,
           onboardingCompleted: data.onboardingCompleted ?? false,
           dateOfBirth: (data as any).dateOfBirth,
           heightCm: (data as any).heightCm as any,
@@ -73,11 +67,7 @@ export class UserRepository extends BaseRepository<User> {
 
   public async update(id: string, data: Partial<User>): Promise<User | null> {
     return this.handleDatabaseOperation(async () => {
-      // Hash password if provided
       let updateData: any = { ...data };
-      if (data.password) {
-        updateData.password = await bcrypt.hash(data.password, 12);
-      }
       // Ensure new profile health fields pass through
       if ((data as any).heightCm !== undefined)
         updateData.heightCm = (data as any).heightCm;

@@ -11,6 +11,7 @@ import {
 } from "components/ui/card";
 import { Heart, Eye, EyeOff, Check, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../lib/auth-context";
+import { useTranslation } from "react-i18next";
 
 export function meta() {
   return [
@@ -20,6 +21,7 @@ export function meta() {
 }
 
 export default function Signup() {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -51,13 +53,13 @@ export default function Signup() {
     // Client-side validation
     const errors: string[] = [];
     if (formData.password !== formData.confirmPassword) {
-      errors.push("Passwords don't match");
+      errors.push(t("signup.validationErrors.passwordsDontMatch"));
     }
     if (!formData.agreeToTerms) {
-      errors.push("Please agree to the terms and conditions");
+      errors.push(t("signup.validationErrors.agreeToTerms"));
     }
     if (formData.password.length < 8) {
-      errors.push("Password must be at least 8 characters long");
+      errors.push(t("signup.validationErrors.passwordTooShort"));
     }
 
     if (errors.length > 0) {
@@ -91,10 +93,22 @@ export default function Signup() {
   };
 
   const passwordRequirements = [
-    { text: "At least 8 characters", met: formData.password.length >= 8 },
-    { text: "Contains uppercase letter", met: /[A-Z]/.test(formData.password) },
-    { text: "Contains lowercase letter", met: /[a-z]/.test(formData.password) },
-    { text: "Contains number", met: /\d/.test(formData.password) },
+    {
+      text: t("signup.passwordRequirementsList.minLength"),
+      met: formData.password.length >= 8,
+    },
+    {
+      text: t("signup.passwordRequirementsList.uppercase"),
+      met: /[A-Z]/.test(formData.password),
+    },
+    {
+      text: t("signup.passwordRequirementsList.lowercase"),
+      met: /[a-z]/.test(formData.password),
+    },
+    {
+      text: t("signup.passwordRequirementsList.number"),
+      met: /\d/.test(formData.password),
+    },
   ];
 
   // Show loading while checking authentication
@@ -103,7 +117,7 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -121,10 +135,10 @@ export default function Signup() {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Create your account
+              {t("signup.createAccount")}
             </h1>
             <p className="text-muted-foreground text-lg">
-              Join SantéAI and start your personalized health journey
+              {t("signup.joinSanteAI")}
             </p>
           </div>
         </div>
@@ -132,10 +146,10 @@ export default function Signup() {
         <div className="max-w-md mx-auto">
           <Card className="border-border/60 shadow-lg">
             <CardHeader className="text-center pb-4">
-              <CardTitle className="text-xl">Get Started</CardTitle>
-              <CardDescription>
-                Fill in your information to create your account
-              </CardDescription>
+              <CardTitle className="text-xl">
+                {t("signup.getStarted")}
+              </CardTitle>
+              <CardDescription>{t("signup.fillInformation")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {(error || validationErrors.length > 0) && (
@@ -159,12 +173,12 @@ export default function Signup() {
                       htmlFor="firstName"
                       className="text-sm font-medium text-foreground"
                     >
-                      First Name
+                      {t("signup.firstName")}
                     </label>
                     <Input
                       id="firstName"
                       name="firstName"
-                      placeholder="John"
+                      placeholder={t("signup.firstNamePlaceholder")}
                       value={formData.firstName}
                       onChange={handleChange}
                       required
@@ -176,12 +190,12 @@ export default function Signup() {
                       htmlFor="lastName"
                       className="text-sm font-medium text-foreground"
                     >
-                      Last Name
+                      {t("signup.lastName")}
                     </label>
                     <Input
                       id="lastName"
                       name="lastName"
-                      placeholder="Doe"
+                      placeholder={t("signup.lastNamePlaceholder")}
                       value={formData.lastName}
                       onChange={handleChange}
                       required
@@ -195,13 +209,13 @@ export default function Signup() {
                     htmlFor="email"
                     className="text-sm font-medium text-foreground"
                   >
-                    Email Address
+                    {t("signup.emailAddress")}
                   </label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder={t("signup.emailPlaceholder")}
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -214,14 +228,14 @@ export default function Signup() {
                     htmlFor="password"
                     className="text-sm font-medium text-foreground"
                   >
-                    Password
+                    {t("signup.password")}
                   </label>
                   <div className="relative">
                     <Input
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a strong password"
+                      placeholder={t("signup.createStrongPassword")}
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -245,7 +259,7 @@ export default function Signup() {
                   {formData.password && (
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground">
-                        Password requirements:
+                        {t("signup.passwordRequirements")}
                       </p>
                       <div className="space-y-1">
                         {passwordRequirements.map((req, index) => (
@@ -281,14 +295,14 @@ export default function Signup() {
                     htmlFor="confirmPassword"
                     className="text-sm font-medium text-foreground"
                   >
-                    Confirm Password
+                    {t("signup.confirmPassword")}
                   </label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
+                      placeholder={t("signup.confirmPasswordPlaceholder")}
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
@@ -313,7 +327,7 @@ export default function Signup() {
                   {formData.confirmPassword &&
                     formData.password !== formData.confirmPassword && (
                       <p className="text-xs text-destructive">
-                        Passwords don't match
+                        {t("signup.passwordsDontMatch")}
                       </p>
                     )}
                 </div>
@@ -332,16 +346,16 @@ export default function Signup() {
                     htmlFor="agreeToTerms"
                     className="text-sm text-muted-foreground leading-relaxed"
                   >
-                    I agree to the{" "}
+                    {t("signup.agreeToTerms")}{" "}
                     <Link to="/terms" className="text-primary hover:underline">
-                      Terms of Service
+                      {t("signup.termsOfService")}
                     </Link>{" "}
-                    and{" "}
+                    {t("signup.and")}{" "}
                     <Link
                       to="/privacy"
                       className="text-primary hover:underline"
                     >
-                      Privacy Policy
+                      {t("signup.privacyPolicy")}
                     </Link>
                   </label>
                 </div>
@@ -351,18 +365,20 @@ export default function Signup() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Creating account..." : "Create account"}
+                  {isSubmitting
+                    ? t("signup.creatingAccount")
+                    : t("signup.createAccount")}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
+                  {t("signup.alreadyHaveAccount")}{" "}
                   <Link
                     to="/login"
                     className="text-primary hover:underline font-medium"
                   >
-                    Sign in
+                    {t("signup.signIn")}
                   </Link>
                 </p>
               </div>

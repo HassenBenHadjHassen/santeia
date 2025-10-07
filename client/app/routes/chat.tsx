@@ -8,6 +8,7 @@ import { useAuth } from "../../lib/auth-context";
 import { conversationService } from "../../lib/api";
 import { authService } from "../../lib/auth";
 import { safeParseDate } from "../../lib/utils";
+import { useTranslation } from "react-i18next";
 import type { Message as ApiMessage, Conversation } from "../../lib/api/types";
 import type { Route } from "./+types/chat";
 
@@ -46,7 +47,7 @@ export async function clientLoader() {
 
   try {
     const conversations = await conversationService.getAllConversations(
-      { userId: "current" }, // This will be resolved by the service
+      { userId: "current" },
       { page: 1, limit: 50, sortBy: "updatedAt", sortOrder: "desc" },
       token
     );
@@ -70,9 +71,8 @@ export async function clientLoader() {
 // Mark the clientLoader to run during hydration
 clientLoader.hydrate = true;
 
-// Message interface is now imported from API types
-
 export default function Chat({ loaderData }: Route.ComponentProps) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>(
@@ -108,8 +108,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
           id: `welcome_${Date.now()}_${Math.random()
             .toString(36)
             .substring(2, 9)}`,
-          content:
-            "Hello! I'm your health assistant. How can I help you today?",
+          content: t("chat.welcomeMessageContent"),
           role: "assistant",
           timestamp: new Date(),
         };
@@ -119,7 +118,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
       }
     } catch (err) {
       console.error("Failed to load conversation:", err);
-      setError("Failed to load conversation.");
+      setError(t("chat.failedToLoadConversation"));
     } finally {
       setIsFetchingConversation(false);
     }
@@ -155,7 +154,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
         }
       } catch (err) {
         console.error("Failed to fetch conversations:", err);
-        setError("Failed to fetch conversations.");
+        setError(t("chat.failedToFetchConversations"));
       } finally {
         setIsLoadingConversations(false);
       }
@@ -166,13 +165,13 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
 
   const handleSendMessage = async (content: string) => {
     if (!user) {
-      setError("No active user. Please log in again.");
+      setError(t("chat.noActiveUser"));
       return;
     }
 
     const token = authService.getToken();
     if (!token) {
-      setError("Authentication required. Please log in again.");
+      setError(t("chat.authRequired"));
       return;
     }
 
@@ -181,7 +180,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
     if (!conversationId) {
       try {
         const newConv = await conversationService.createConversation(
-          { title: "New Chat" },
+          { title: t("chat.newChat") },
           token
         );
         setCurrentConversation(newConv);
@@ -189,7 +188,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
         conversationId = newConv.id;
       } catch (err) {
         console.error("Failed to create conversation:", err);
-        setError("Failed to start a new conversation.");
+        setError(t("chat.failedToStartConversation"));
         return;
       }
     }
@@ -293,7 +292,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
         // onError
         (error: string) => {
           console.error("Streaming error:", error);
-          setError("Failed to send message. Please try again.");
+          setError(t("chat.failedToSendMessage"));
           // Remove temp messages on error
           setMessages((prev) =>
             prev.filter((msg) => !msg.id.startsWith("temp_"))
@@ -329,7 +328,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
       );
     } catch (err) {
       console.error("Failed to send message:", err);
-      setError("Failed to send message. Please try again.");
+      setError(t("chat.failedToSendMessage"));
       // Remove temp message on error
       setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
       setIsLoading(false);
@@ -346,14 +345,14 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
       const token = authService.getToken();
       if (!token) return;
       const conv = await conversationService.createConversation(
-        { title: "New Chat" },
+        { title: t("chat.newChat") },
         token
       );
       setConversations((prev) => [conv, ...prev]);
       await loadConversationById(conv.id);
     } catch (err) {
       console.error("Failed to create conversation:", err);
-      setError("Failed to start a new conversation.");
+      setError(t("chat.failedToStartConversation"));
     }
   };
 
@@ -403,11 +402,9 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
         <div className="mb-6 flex-shrink-0">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {currentConversation?.title || "New Chat"}
+              {currentConversation?.title || t("chat.newChat")}
             </h1>
-            <p className="text-muted-foreground">
-              Ask anything about your health. This is not medical advice.
-            </p>
+            <p className="text-muted-foreground">{t("chat.description2")}</p>
           </div>
         </div>
 
@@ -419,7 +416,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
               onClick={() => setError(null)}
               className="text-red-500 hover:text-red-700 text-sm underline mt-1"
             >
-              Dismiss
+              {t("chat.dismiss")}
             </button>
           </div>
         )}

@@ -13,6 +13,8 @@ import {
 import { Link, useNavigate, useLocation } from "react-router";
 import { Avatar, AvatarFallback } from "components/ui/avatar";
 import { useAuth } from "../../lib/auth-context";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "../ui/language-switcher";
 
 interface HeaderProps {
   user?: {
@@ -42,6 +44,7 @@ export function Header({
   onMobileMenuToggle,
 }: HeaderProps) {
   const { user: authUser, logout } = useAuth();
+  const { t } = useTranslation();
   const [theme, setTheme] = useState<"light" | "dark">(() =>
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark")
@@ -58,34 +61,43 @@ export function Header({
     switch (path) {
       case "/":
         return {
-          name: "Dashboard",
-          description: "Overview of your health data",
+          name: t("navigation.dashboard"),
+          description: t("dashboard.description"),
         };
       case "/diary":
         return {
-          name: "Health Diary",
-          description: "Log meals, activities, and symptoms",
+          name: t("navigation.diary"),
+          description: t("diary.description"),
         };
       case "/medications":
-        return { name: "Medications", description: "Manage your medications" };
+        return {
+          name: t("navigation.medications"),
+          description: t("medications.description"),
+        };
       case "/chat":
-        return { name: "Chat", description: "Chat with your health assistant" };
+        return {
+          name: t("navigation.chat"),
+          description: t("chat.description"),
+        };
       case "/export":
         return {
-          name: "Export Data",
-          description: "Download your health reports",
+          name: t("navigation.export"),
+          description: t("export.description"),
         };
       case "/profile":
-        return { name: "Profile", description: "Manage your account settings" };
+        return {
+          name: t("navigation.profile"),
+          description: t("profile.description"),
+        };
       case "/onboarding":
         return {
-          name: "Health Setup",
-          description: "Complete your health profile",
+          name: t("navigation.onboarding"),
+          description: t("onboarding.description"),
         };
       default:
         return {
-          name: "SantéAI",
-          description: "Your personal health assistant",
+          name: t("app.name"),
+          description: t("app.description"),
         };
     }
   };
@@ -157,9 +169,9 @@ export function Header({
                 <Heart className="h-4 w-4 text-primary" />
               </div>
               <div className="hidden sm:block">
-                <span className="text-lg font-bold">SantéAI</span>
+                <span className="text-lg font-bold">{t("app.name")}</span>
                 <p className="text-xs text-muted-foreground -mt-1">
-                  Health Assistant
+                  {t("app.tagline")}
                 </p>
               </div>
             </Link>
@@ -177,8 +189,11 @@ export function Header({
             </div>
           </div>
 
-          {/* Right: Theme + Profile */}
+          {/* Right: Language + Theme + Profile */}
           <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Switcher */}
             <Button
               variant="ghost"
@@ -261,7 +276,7 @@ export function Header({
                           className="w-full justify-start rounded-lg text-sm h-9"
                         >
                           <UserCircle className="h-4 w-4 mr-3" />
-                          View Profile
+                          {t("auth.viewProfile")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -270,7 +285,7 @@ export function Header({
                           className="w-full justify-start rounded-lg text-sm h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <LogOut className="h-4 w-4 mr-3" />
-                          Logout
+                          {t("navigation.logout")}
                         </Button>
                       </div>
                     </div>
@@ -284,10 +299,10 @@ export function Header({
                   asChild
                   className="rounded-lg text-sm px-4 py-2"
                 >
-                  <Link to="/login">Log in</Link>
+                  <Link to="/login">{t("navigation.login")}</Link>
                 </Button>
                 <Button asChild className="rounded-lg text-sm px-4 py-2">
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/signup">{t("navigation.signup")}</Link>
                 </Button>
               </div>
             )}

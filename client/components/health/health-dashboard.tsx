@@ -22,6 +22,7 @@ import {
 import { UserService } from "../../lib/api/services/userService";
 import { ApiClient } from "../../lib/api/client";
 import { authService } from "../../lib/auth";
+import { useTranslation } from "react-i18next";
 
 // Create API client and service instances
 const apiClient = new ApiClient("http://localhost:3000/api");
@@ -71,6 +72,8 @@ interface HealthDashboardProps {
 }
 
 export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
+  const { t } = useTranslation();
+
   // State management
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<
@@ -241,7 +244,8 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
 
       // Add onboarding data as initial data points if no database metrics exist
       if (filteredMetrics.length === 0 && userProfile) {
-        const onboardingDate = new Date(userProfile.dateOfBirth || Date.now());
+        // Use a reasonable date for onboarding data (e.g., 30 days ago or current date)
+        const onboardingDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
 
         if (metricType === "weight" && userProfile.weightKg) {
           filteredMetrics = [
@@ -669,7 +673,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
   const metricCards: MetricCardData[] = [
     {
       id: "weight",
-      title: "Weight",
+      title: t("healthDashboard.metricTypes.weight"),
       icon: <Weight className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
       value: getLatestMetric("weight")?.value || null,
       unit: "kg",
@@ -678,7 +682,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
     },
     {
       id: "blood_pressure",
-      title: "Blood Pressure",
+      title: t("healthDashboard.metricTypes.blood_pressure"),
       icon: <Heart className="h-5 w-5 text-red-600 dark:text-red-400" />,
       value: getLatestBloodPressure()?.value || null,
       unit: "mmHg",
@@ -693,7 +697,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
     },
     {
       id: "heart_rate",
-      title: "Heart Rate",
+      title: t("healthDashboard.metricTypes.heart_rate"),
       icon: <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />,
       value: getLatestMetric("heart_rate")?.value || null,
       unit: "bpm",
@@ -702,7 +706,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
     },
     {
       id: "bmi",
-      title: "BMI",
+      title: t("healthDashboard.metricTypes.bmi"),
       icon: <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
       value: calculateBMI()?.toFixed(1) || null,
       unit: "kg/m²",
@@ -713,7 +717,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
     },
     {
       id: "blood_sugar",
-      title: "Blood Sugar",
+      title: t("healthDashboard.metricTypes.blood_sugar"),
       icon: (
         <Activity className="h-5 w-5 text-orange-600 dark:text-orange-400" />
       ),
@@ -826,12 +830,10 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
           <div className="text-center">
             <Target className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
             <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              BMI is Calculated Automatically
+              {t("healthDashboard.bmiCalculatedAutomatically")}
             </h4>
             <p className="text-blue-800 dark:text-blue-200 mb-4">
-              Your BMI is calculated from your weight and height measurements.
-              The curve above shows how your BMI changes over time as you record
-              new weight data.
+              {t("healthDashboard.bmiDescription")}
             </p>
             {calculateBMI() && (
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
@@ -848,8 +850,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
               </div>
             )}
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              To update your BMI curve, add new weight measurements in the
-              Weight section.
+              {t("healthDashboard.updateBmiCurve")}
             </p>
           </div>
         </div>
@@ -863,8 +864,8 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {selectedMetricType === "blood_pressure"
-                ? "Blood Pressure (systolic/diastolic)"
-                : "Value"}
+                ? t("healthDashboard.bloodPressureValue")
+                : t("healthDashboard.value")}
             </label>
             <input
               type={selectedMetricType === "blood_pressure" ? "text" : "number"}
@@ -882,7 +883,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Unit
+              {t("healthDashboard.unit")}
             </label>
             {selectedMetricType === "blood_sugar" ? (
               <select
@@ -909,19 +910,31 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
         {selectedMetricType === "blood_sugar" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Reading Type
+              {t("healthDashboard.readingType")}
             </label>
             <select
               value={bloodSugarType}
               onChange={(e) => setBloodSugarType(e.target.value)}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             >
-              <option value="FASTING">Fasting</option>
-              <option value="BEFORE_MEAL">Before Meal</option>
-              <option value="AFTER_MEAL">After Meal</option>
-              <option value="BEDTIME">Bedtime</option>
-              <option value="RANDOM">Random</option>
-              <option value="POST_EXERCISE">Post Exercise</option>
+              <option value="FASTING">
+                {t("healthDashboard.bloodSugarTypes.FASTING")}
+              </option>
+              <option value="BEFORE_MEAL">
+                {t("healthDashboard.bloodSugarTypes.BEFORE_MEAL")}
+              </option>
+              <option value="AFTER_MEAL">
+                {t("healthDashboard.bloodSugarTypes.AFTER_MEAL")}
+              </option>
+              <option value="BEDTIME">
+                {t("healthDashboard.bloodSugarTypes.BEDTIME")}
+              </option>
+              <option value="RANDOM">
+                {t("healthDashboard.bloodSugarTypes.RANDOM")}
+              </option>
+              <option value="POST_EXERCISE">
+                {t("healthDashboard.bloodSugarTypes.POST_EXERCISE")}
+              </option>
             </select>
           </div>
         )}
@@ -929,13 +942,13 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
         {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Notes (optional)
+            {t("healthDashboard.notes")}
           </label>
           <textarea
             value={formNotes}
             onChange={(e) => setFormNotes(e.target.value)}
             rows={2}
-            placeholder="Add any notes..."
+            placeholder={t("healthDashboard.notesPlaceholder")}
             className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           />
         </div>
@@ -943,7 +956,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
         {/* Date/Time */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Date & Time
+            {t("healthDashboard.dateTime")}
           </label>
           <div className="space-y-2">
             <input
@@ -960,7 +973,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
                 onChange={(e) => setUseNow(e.target.checked)}
                 className="rounded"
               />
-              Use current time
+              {t("healthDashboard.useCurrentTime")}
             </label>
           </div>
         </div>
@@ -973,7 +986,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
               disabled={saving || !formValue}
               className="min-w-24"
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("healthDashboard.saving") : t("healthDashboard.save")}
             </Button>
           </div>
         )}
@@ -986,7 +999,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
       {/* Period Selector */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Period:
+          {t("healthDashboard.period")}
         </span>
         {(["7d", "30d", "90d", "1y"] as const).map((period) => (
           <Button
@@ -996,13 +1009,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
             onClick={() => setSelectedPeriod(period)}
             className="text-xs"
           >
-            {period === "7d"
-              ? "7 Days"
-              : period === "30d"
-              ? "30 Days"
-              : period === "90d"
-              ? "90 Days"
-              : "1 Year"}
+            {t(`healthDashboard.periods.${period}`)}
           </Button>
         ))}
       </div>
@@ -1039,7 +1046,9 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
                 )}
               </div>
             ) : (
-              <div className="text-gray-500 dark:text-gray-400">No data</div>
+              <div className="text-gray-500 dark:text-gray-400">
+                {t("healthDashboard.noData")}
+              </div>
             )}
           </Card>
         ))}
@@ -1048,21 +1057,25 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="overview">
+            {t("healthDashboard.tabs.overview")}
+          </TabsTrigger>
+          <TabsTrigger value="insights">
+            {t("healthDashboard.tabs.insights")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
           {loading ? (
             <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-              Loading metrics...
+              {t("healthDashboard.loadingMetrics")}
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Metrics */}
               <Card className="p-4">
                 <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                  Recent Metrics
+                  {t("healthDashboard.recentMetrics")}
                 </h3>
                 <div className="space-y-3">
                   {metrics.slice(0, 10).map((metric) => (
@@ -1096,7 +1109,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
               {/* Blood Sugar Recent */}
               <Card className="p-4">
                 <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                  Recent Blood Sugar
+                  {t("healthDashboard.recentBloodSugar")}
                 </h3>
                 <div className="space-y-3">
                   {bloodSugarReadings.slice(0, 5).map((reading) => (
@@ -1135,20 +1148,21 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 capitalize">
-                  {selectedMetricType.replace("_", " ")} Insights
+                  {t(`healthDashboard.metricTypes.${selectedMetricType}`)}{" "}
+                  {t("healthDashboard.tabs.insights")}
                 </h3>
                 <Button
                   variant="outline"
                   onClick={() => setSelectedMetricType(null)}
                 >
-                  Back to Overview
+                  {t("healthDashboard.backToOverview")}
                 </Button>
               </div>
 
               {/* Chart */}
               <div className="mb-6">
                 <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
-                  Trend
+                  {t("healthDashboard.trend")}
                 </h4>
                 {renderChart()}
               </div>
@@ -1156,7 +1170,7 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
               {/* Form */}
               <div>
                 <h4 className="font-medium mb-3 text-gray-900 dark:text-gray-100">
-                  Add New Reading
+                  {t("healthDashboard.addNewReading")}
                 </h4>
                 {renderForm()}
               </div>
@@ -1164,11 +1178,10 @@ export function HealthDashboard({ onMetricAdded }: HealthDashboardProps) {
           ) : (
             <Card className="p-8 text-center">
               <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
-                Health Insights
+                {t("healthDashboard.insights")}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Click on any metric card above to view detailed insights,
-                trends, and add new data.
+                {t("healthDashboard.insightsDescription")}
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">

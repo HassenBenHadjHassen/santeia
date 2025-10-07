@@ -12,6 +12,8 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { AuthProvider } from "../lib/auth-context";
 import { HydrateFallback as LoadingFallback } from "../components/ui/loading-spinner";
+import { useTranslation } from "react-i18next";
+import "../lib/i18n";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -57,25 +59,27 @@ export default function App() {
 }
 
 export function HydrateFallback() {
+  const { t } = useTranslation();
   return (
     <LoadingFallback
-      title="Loading SantéAI..."
-      description="Setting up your health assistant"
+      title={t("loading.loadingSanteAI")}
+      description={t("loading.settingUpAssistant")}
       showSkeleton={true}
     />
   );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const { t } = useTranslation();
   let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let details = t("errors.unexpectedError");
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? "404" : t("common.error");
     details =
       error.status === 404
-        ? "The requested page could not be found."
+        ? t("errors.pageNotFound")
         : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;

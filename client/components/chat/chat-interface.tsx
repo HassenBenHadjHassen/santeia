@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback } from "components/ui/avatar";
 import { Button } from "components/ui/button";
 import { Card, CardContent } from "components/ui/card";
 import { Textarea } from "components/ui/textarea";
+import { useTranslation } from "react-i18next";
 
 interface Message {
   id: string;
@@ -50,6 +51,7 @@ export function ChatInterface({
   isFetchingConversation = false,
   onScrollToBottom,
 }: ChatInterfaceProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -61,49 +63,49 @@ export function ChatInterface({
   const promptSuggestions: PromptSuggestion[] = [
     {
       id: "diagnose-bp",
-      text: "Analyze my blood pressure readings and trends",
+      text: t("chat.promptSuggestions.diagnoseBp"),
       icon: <Activity className="h-4 w-4" />,
       category: "diagnosis",
     },
     {
       id: "diagnose-bs",
-      text: "Review my blood sugar patterns and control",
+      text: t("chat.promptSuggestions.diagnoseBs"),
       icon: <TrendingUp className="h-4 w-4" />,
       category: "diagnosis",
     },
     {
       id: "overall-health",
-      text: "Give me an overall health assessment",
+      text: t("chat.promptSuggestions.overallHealth"),
       icon: <Heart className="h-4 w-4" />,
       category: "analysis",
     },
     {
       id: "weight-trends",
-      text: "Analyze my weight trends and BMI changes",
+      text: t("chat.promptSuggestions.weightTrends"),
       icon: <TrendingUp className="h-4 w-4" />,
       category: "analysis",
     },
     {
       id: "symptoms-fatigue",
-      text: "I've been feeling tired lately, what could it mean?",
+      text: t("chat.promptSuggestions.symptomsFatigue"),
       icon: <AlertCircle className="h-4 w-4" />,
       category: "symptoms",
     },
     {
       id: "symptoms-headache",
-      text: "I have frequent headaches, should I be concerned?",
+      text: t("chat.promptSuggestions.symptomsHeadache"),
       icon: <AlertCircle className="h-4 w-4" />,
       category: "symptoms",
     },
     {
       id: "diet-advice",
-      text: "What dietary changes should I consider?",
+      text: t("chat.promptSuggestions.dietAdvice"),
       icon: <Sparkles className="h-4 w-4" />,
       category: "lifestyle",
     },
     {
       id: "exercise-plan",
-      text: "Suggest an exercise plan for my health condition",
+      text: t("chat.promptSuggestions.exercisePlan"),
       icon: <Activity className="h-4 w-4" />,
       category: "lifestyle",
     },
@@ -314,19 +316,17 @@ export function ChatInterface({
               <div>
                 <Heart className="h-12 w-12 text-muted-foreground mb-4 mx-auto" />
                 <h3 className="text-lg font-semibold mb-2">
-                  Welcome to SantéAI
+                  {t("chat.welcomeTitle")}
                 </h3>
                 <p className="text-muted-foreground max-w-md">
-                  I'm here to help you with your health concerns. Please
-                  describe any symptoms, ask questions about your health, or
-                  share information about your lifestyle.
+                  {t("chat.welcomeMessage")}
                 </p>
               </div>
 
               {showSuggestions && (
                 <div className="w-full max-w-2xl">
                   <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                    Quick suggestions to get started:
+                    {t("chat.quickSuggestions")}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {promptSuggestions.map((suggestion) => (
@@ -354,9 +354,7 @@ export function ChatInterface({
 
               <div className="mt-4 p-3 bg-muted rounded-lg max-w-md">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Remember:</strong> This conversation is for
-                  informational purposes only. Always consult a healthcare
-                  professional for medical advice.
+                  {t("chat.disclaimer")}
                 </p>
               </div>
             </div>
@@ -444,7 +442,7 @@ export function ChatInterface({
                     SantéAI
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    typing...
+                    {t("chat.typing")}
                   </span>
                 </div>
                 <Card className="bg-accent rounded-2xl rounded-bl-sm border border-border/60 shadow-sm">
@@ -474,7 +472,7 @@ export function ChatInterface({
           <div className="p-2 border-b border-border/30">
             <div className="flex flex-wrap gap-1">
               <span className="text-xs text-muted-foreground mr-2 py-1">
-                Quick questions:
+                {t("chat.quickQuestions")}
               </span>
               {promptSuggestions.slice(0, 4).map((suggestion) => (
                 <Button
@@ -509,7 +507,7 @@ export function ChatInterface({
                   }
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Describe your symptoms, ask health questions, or share your concerns..."
+                placeholder={t("chat.placeholder")}
                 className="w-full min-h-[52px] md:min-h-[60px] max-h-[140px] resize-none rounded-2xl border-border/60 shadow-sm"
                 disabled={isLoading}
               />
@@ -526,7 +524,7 @@ export function ChatInterface({
                     <span className="relative block h-6 w-6 rounded-full bg-primary"></span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Listening…
+                    {t("chat.listening")}
                   </span>
                 </div>
               )}
@@ -538,11 +536,13 @@ export function ChatInterface({
                   className="rounded-full"
                   onClick={isRecording ? stopRecording : startRecording}
                   aria-label={
-                    isRecording ? "Stop recording" : "Start recording"
+                    isRecording
+                      ? t("chat.stopRecording")
+                      : t("chat.startRecording")
                   }
                 >
                   {isRecording ? (
-                    <span className="px-1">Stop</span>
+                    <span className="px-1">{t("chat.stop")}</span>
                   ) : (
                     <Mic className="h-4 w-4" />
                   )}
@@ -559,7 +559,7 @@ export function ChatInterface({
             </div>
           </form>
           <p className="text-xs text-muted-foreground mt-2">
-            Press Enter to send, Shift+Enter for new line
+            {t("chat.sendInstructions")}
           </p>
         </div>
       </div>

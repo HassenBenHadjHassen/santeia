@@ -1,0 +1,478 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "app": {
+    "name": "SantéAI",
+    "tagline": "Health Assistant",
+    "description": "Your personal health assistant"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "diary": "Health Diary",
+    "medications": "Medications",
+    "chat": "Chat",
+    "export": "Export Data",
+    "profile": "Profile",
+    "onboarding": "Health Setup",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Logout"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "signInToAccount": "Sign in to your SantéAI account to continue your health journey",
+    "signIn": "Sign In",
+    "enterCredentials": "Enter your credentials to access your account",
+    "emailAddress": "Email Address",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "enterPassword": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signingIn": "Signing in...",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "createAccount": "Create Account",
+    "signUpDescription": "Create your SantéAI account to start your health journey",
+    "fullName": "Full Name",
+    "enterFullName": "Enter your full name",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInHere": "Sign in here",
+    "viewProfile": "View Profile"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Overview of your health data and metrics",
+    "welcomeMessage": "Welcome to your health dashboard"
+  },
+  "diary": {
+    "title": "Health Diary",
+    "description": "Log meals, activities, and symptoms",
+    "logMeal": "Log Meal",
+    "logActivity": "Log Activity",
+    "logSymptom": "Log Symptom"
+  },
+  "medications": {
+    "title": "Medications",
+    "description": "Manage your medications",
+    "addMedication": "Add Medication",
+    "medicationName": "Medication Name",
+    "dosage": "Dosage",
+    "frequency": "Frequency",
+    "notes": "Notes"
+  },
+  "errors": {
+    "unexpectedError": "An unexpected error occurred.",
+    "pageNotFound": "The requested page could not be found.",
+    "networkError": "Network error. Please check your connection.",
+    "invalidCredentials": "Invalid email or password.",
+    "emailAlreadyExists": "An account with this email already exists.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "requiredField": "This field is required."
+  },
+  "loading": {
+    "loadingSanteAI": "Loading SantéAI...",
+    "settingUpAssistant": "Setting up your health assistant"
+  },
+  "healthDashboard": {
+    "period": "Period:",
+    "periods": {
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days",
+      "1y": "1 Year"
+    },
+    "noData": "No data",
+    "tabs": {
+      "overview": "Overview",
+      "insights": "Insights"
+    },
+    "recentMetrics": "Recent Metrics",
+    "recentBloodSugar": "Recent Blood Sugar",
+    "bmiCalculatedAutomatically": "BMI is Calculated Automatically",
+    "bmiDescription": "Your BMI is calculated from your weight and height measurements. The curve above shows how your BMI changes over time as you record new weight data.",
+    "updateBmiCurve": "To update your BMI curve, add new weight measurements in the Weight section.",
+    "value": "Value",
+    "bloodPressureValue": "Blood Pressure (systolic/diastolic)",
+    "unit": "Unit",
+    "readingType": "Reading Type",
+    "notes": "Notes (optional)",
+    "notesPlaceholder": "Add any notes...",
+    "dateTime": "Date & Time",
+    "useCurrentTime": "Use current time",
+    "saving": "Saving...",
+    "save": "Save",
+    "loadingMetrics": "Loading metrics...",
+    "insights": "Health Insights",
+    "insightsDescription": "Click on any metric card above to view detailed insights, trends, and add new data.",
+    "trend": "Trend",
+    "addNewReading": "Add New Reading",
+    "backToOverview": "Back to Overview",
+    "bloodSugarTypes": {
+      "FASTING": "Fasting",
+      "BEFORE_MEAL": "Before Meal",
+      "AFTER_MEAL": "After Meal",
+      "BEDTIME": "Bedtime",
+      "RANDOM": "Random",
+      "POST_EXERCISE": "Post Exercise"
+    },
+    "metricTypes": {
+      "weight": "Weight",
+      "height": "Height",
+      "blood_pressure": "Blood Pressure",
+      "heart_rate": "Heart Rate",
+      "blood_sugar": "Blood Sugar",
+      "bmi": "BMI"
+    }
+  },
+  "chat": {
+    "description": "Chat with your health assistant for personalized guidance and support",
+    "description2": "Chat with your health assistant. This is not medical advice.",
+    "welcomeTitle": "Welcome to SantéAI",
+    "welcomeMessage": "I'm here to help you with your health concerns. Please describe any symptoms, ask questions about your health, or share information about your lifestyle.",
+    "quickSuggestions": "Quick suggestions to get started:",
+    "disclaimer": "Remember: This conversation is for informational purposes only. Always consult a healthcare professional for medical advice.",
+    "typing": "typing...",
+    "listening": "Listening…",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
+    "stop": "Stop",
+    "quickQuestions": "Quick questions:",
+    "placeholder": "Describe your symptoms, ask health questions, or share your concerns...",
+    "sendInstructions": "Press Enter to send, Shift+Enter for new line",
+    "newChat": "New Chat",
+    "dismiss": "Dismiss",
+    "noActiveUser": "No active user. Please log in again.",
+    "authRequired": "Authentication required. Please log in again.",
+    "failedToStartConversation": "Failed to start a new conversation.",
+    "failedToSendMessage": "Failed to send message. Please try again.",
+    "failedToLoadConversation": "Failed to load conversation.",
+    "failedToFetchConversations": "Failed to fetch conversations.",
+    "welcomeMessageContent": "Hello! I'm your health assistant. How can I help you today?",
+    "promptSuggestions": {
+      "diagnoseBp": "Analyze my blood pressure readings and trends",
+      "diagnoseBs": "Review my blood sugar patterns and control",
+      "overallHealth": "Give me an overall health assessment",
+      "weightTrends": "Analyze my weight trends and BMI changes",
+      "symptomsFatigue": "I've been feeling tired lately, what could it mean?",
+      "symptomsHeadache": "I have frequent headaches, should I be concerned?",
+      "dietAdvice": "What dietary changes should I consider?",
+      "exercisePlan": "Suggest an exercise plan for my health condition"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your account information and preferences",
+    "personalInformation": "Personal Information",
+    "personalInformationDesc": "Your basic account information",
+    "edit": "Edit",
+    "fullName": "Full Name",
+    "enterFullName": "Enter your full name",
+    "emailAddress": "Email Address",
+    "enterEmail": "Enter your email",
+    "memberSince": "Member Since",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "profileUpdatedSuccessfully": "Profile updated successfully!",
+    "healthInformation": "Health Information",
+    "healthInformationDesc": "Your diabetes management preferences and settings",
+    "vitals": "Vitals",
+    "dateOfBirth": "Date of Birth",
+    "height": "Height",
+    "weight": "Weight",
+    "bloodPressure": "Blood Pressure",
+    "restingHeartRate": "Resting Heart Rate",
+    "notSpecified": "Not specified",
+    "diabetesProfile": "Diabetes Profile",
+    "typeOfDiabetes": "Type of Diabetes",
+    "diagnosisDate": "Diagnosis Date",
+    "bloodSugarTargets": "Blood Sugar Targets",
+    "fasting": "Fasting (mg/dL)",
+    "beforeMeals": "Before Meals (mg/dL)",
+    "afterMeals": "After Meals (mg/dL)",
+    "bedtime": "Bedtime (mg/dL)",
+    "notSet": "Not set",
+    "activityLevel": "Activity Level",
+    "currentActivityLevel": "Current Activity Level",
+    "currentMedications": "Current Medications",
+    "dietaryPreferences": "Dietary Preferences",
+    "emergencyContact": "Emergency Contact",
+    "noHealthInformation": "No Health Information",
+    "noHealthInformationDesc": "Complete your health profile to get personalized recommendations",
+    "completeHealthProfile": "Complete Health Profile",
+    "accountActions": "Account Actions",
+    "accountActionsDesc": "Manage your account settings and data",
+    "exportData": "Export Data",
+    "exportDataDesc": "Download your health data for your healthcare provider",
+    "exportPdf": "Export PDF",
+    "signOut": "Sign Out",
+    "signOutDesc": "Sign out of your account on this device"
+  },
+  "onboarding": {
+    "title": "Welcome to SantéAI - Onboarding",
+    "description": "Set up your personalized diabetes management profile",
+    "welcomeTitle": "Welcome to SantéAI!",
+    "welcomeDescription": "Your personal health assistant for diabetes management. We'll help you track your blood sugar, manage medications, and make informed health decisions.",
+    "importantNote": "Important: SantéAI provides educational guidance and support. Always consult with your healthcare provider for medical advice and treatment decisions.",
+    "setupTitle": "SantéAI Setup",
+    "stepOf": "Step {{current}} of {{total}}",
+    "vitalsPersonalInfo": "Vitals & Personal Info",
+    "vitalsPersonalInfoDesc": "Add your height, weight, blood pressure, and DOB",
+    "diabetesInformation": "Diabetes Information",
+    "diabetesInformationDesc": "Tell us about your diabetes type and diagnosis",
+    "medicationsTreatment": "Medications & Treatment",
+    "medicationsTreatmentDesc": "What medications are you currently taking?",
+    "bloodSugarTargets": "Blood Sugar Targets",
+    "bloodSugarTargetsDesc": "Set your personalized blood sugar goals",
+    "lifestyleDiet": "Lifestyle & Diet",
+    "lifestyleDietDesc": "Help us understand your activity level and dietary preferences",
+    "emergencyContact": "Emergency Contact",
+    "completeSetup": "Complete Setup",
+    "completeSetupDesc": "Review your information and start your journey",
+    "previous": "Previous",
+    "next": "Next",
+    "saving": "Saving...",
+    "dateOfBirthOptional": "Date of Birth (optional)",
+    "heightCm": "Height (cm)",
+    "heightPlaceholder": "e.g., 175",
+    "weightKg": "Weight (kg)",
+    "weightPlaceholder": "e.g., 70",
+    "bpSystolic": "BP Systolic (mmHg)",
+    "bpSystolicPlaceholder": "e.g., 120",
+    "bpDiastolic": "BP Diastolic (mmHg)",
+    "bpDiastolicPlaceholder": "e.g., 80",
+    "restingHeartRateBpm": "Resting Heart Rate (bpm)",
+    "heartRatePlaceholder": "e.g., 70",
+    "whatTypeOfDiabetes": "What type of diabetes do you have?",
+    "whenDiagnosedOptional": "When were you diagnosed? (optional)",
+    "currentMedications": "Current Medications",
+    "selectMedicationsDesc": "Select all medications you're currently taking (you can add more later)",
+    "setBloodSugarGoals": "Set your personalized blood sugar goals (mg/dL). These can be adjusted later.",
+    "fastingMorning": "Fasting (morning)",
+    "fastingPlaceholder": "80-130",
+    "beforeMeals": "Before Meals",
+    "beforeMealsPlaceholder": "80-130",
+    "afterMeals2Hours": "After Meals (2 hours)",
+    "afterMealsPlaceholder": "<180",
+    "bedtime": "Bedtime",
+    "bedtimePlaceholder": "100-140",
+    "activityLevel": "Activity Level",
+    "dietaryPreferences": "Dietary Preferences",
+    "dietaryPreferencesDesc": "Select any dietary preferences or restrictions you follow",
+    "emergencyContactDesc": "Add an emergency contact for safety alerts and notifications",
+    "fullName": "Full Name",
+    "enterFullName": "Enter full name",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "+1 (555) 123-4567",
+    "relationship": "Relationship",
+    "relationshipPlaceholder": "e.g., Spouse, Parent, Sibling, Friend",
+    "setupComplete": "Setup Complete!",
+    "setupCompleteDesc": "Your personalized diabetes management profile is ready. You can always update these settings in your profile later.",
+    "whatsNext": "What's Next?",
+    "whatsNextItems": [
+      "Start tracking your blood sugar levels",
+      "Log your meals and activities",
+      "Set medication reminders",
+      "Chat with SantéAI for personalized advice"
+    ],
+    "diabetesTypes": {
+      "type1": "Type 1 Diabetes",
+      "type2": "Type 2 Diabetes",
+      "gestational": "Gestational Diabetes",
+      "prediabetes": "Prediabetes",
+      "other": "Other"
+    },
+    "activityLevels": {
+      "sedentary": "Sedentary (little to no exercise)",
+      "light": "Light activity (1-3 days/week)",
+      "moderate": "Moderate activity (3-5 days/week)",
+      "active": "Active (6-7 days/week)",
+      "veryActive": "Very active (twice daily or intense exercise)"
+    },
+    "dietaryOptions": {
+      "lowCarb": "Low carb",
+      "mediterranean": "Mediterranean",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "glutenFree": "Gluten-free",
+      "dairyFree": "Dairy-free",
+      "keto": "Keto",
+      "intermittentFasting": "Intermittent fasting"
+    },
+    "medications": {
+      "metformin": "Metformin",
+      "insulinLongActing": "Insulin (long-acting)",
+      "insulinShortActing": "Insulin (short-acting)",
+      "sulfonylureas": "Sulfonylureas",
+      "dpp4Inhibitors": "DPP-4 inhibitors",
+      "glp1ReceptorAgonists": "GLP-1 receptor agonists",
+      "sglt2Inhibitors": "SGLT2 inhibitors",
+      "thiazolidinediones": "Thiazolidinediones",
+      "alphaGlucosidaseInhibitors": "Alpha-glucosidase inhibitors"
+    }
+  },
+  "signup": {
+    "title": "Sign Up - SantéAI",
+    "description": "Create your SantéAI account",
+    "createAccount": "Create your account",
+    "joinSanteAI": "Join SantéAI and start your personalized health journey",
+    "getStarted": "Get Started",
+    "fillInformation": "Fill in your information to create your account",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "john@example.com",
+    "password": "Password",
+    "createStrongPassword": "Create a strong password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "passwordRequirements": "Password requirements:",
+    "passwordRequirementsList": {
+      "minLength": "At least 8 characters",
+      "uppercase": "Contains uppercase letter",
+      "lowercase": "Contains lowercase letter",
+      "number": "Contains number"
+    },
+    "passwordsDontMatch": "Passwords don't match",
+    "agreeToTerms": "I agree to the",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "creatingAccount": "Creating account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "validationErrors": {
+      "passwordsDontMatch": "Passwords don't match",
+      "agreeToTerms": "Please agree to the terms and conditions",
+      "passwordTooShort": "Password must be at least 8 characters long"
+    }
+  },
+  "export": {
+    "title": "Export Health Report",
+    "description": "Generate a comprehensive PDF report with AI-powered insights of your health data for your healthcare provider",
+    "whatsIncluded": "What's Included in Your Report",
+    "features": {
+      "healthData": {
+        "title": "Health Data",
+        "description": "Blood sugar, meals, activities"
+      },
+      "aiSummary": {
+        "title": "AI Summary",
+        "description": "Personalized insights & analysis"
+      },
+      "aiConversations": {
+        "title": "AI Conversations",
+        "description": "Chat history & recommendations"
+      },
+      "alertsInsights": {
+        "title": "Alerts & Insights",
+        "description": "Health alerts & recommendations"
+      }
+    }
+  },
+  "pdfExport": {
+    "title": "Export Health Report",
+    "description": "Generate a comprehensive PDF report of your health data for your doctor or endocrinologist.",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "reportWillInclude": "Report will include:",
+    "features": {
+      "bloodSugarReadings": "Blood sugar readings and trends",
+      "mealDiary": "Meal diary with nutritional information",
+      "physicalActivity": "Physical activity log",
+      "medications": "Current medications and dosages",
+      "healthMetrics": "Health metrics (weight, blood pressure, etc.)",
+      "aiSummary": "AI-powered health summary and insights",
+      "aiConversations": "AI conversation history and recommendations",
+      "healthAlerts": "Health alerts and notifications",
+      "recommendations": "Personalized recommendations",
+      "trendAnalysis": "Comprehensive trend analysis"
+    },
+    "generateButton": "Generate Health Report",
+    "generatingButton": "Generating PDF...",
+    "errorMessage": "Error generating PDF report. Please try again.",
+    "aiSummaryError": "AI summary generation failed. Please review the detailed data below.",
+    "aiPrompt": {
+      "title": "Analyze the health data and provide a clean, professional summary.",
+      "instructions": "Write a professional health data analysis covering:",
+      "requirements": {
+        "noGreetings": "No greetings, disclaimers, or refusals",
+        "noMarkdown": "No markdown formatting (no **bold** or ## headers)",
+        "noMedicalAdvice": "No medical advice or recommendations",
+        "plainText": "Write in plain text paragraphs",
+        "directFactual": "Be direct and factual",
+        "maxParagraphs": "2-3 paragraphs maximum"
+      }
+    },
+    "sections": {
+      "summary": "Summary",
+      "bloodSugarTrends": "Blood Sugar Trends"
+    }
+  },
+  "sidebar": {
+    "navigation": {
+      "dashboard": {
+        "name": "Dashboard",
+        "description": "Overview of your health data"
+      },
+      "diary": {
+        "name": "Health Diary",
+        "description": "Log meals, activities, and symptoms"
+      },
+      "medications": {
+        "name": "Medications",
+        "description": "Manage your medications"
+      },
+      "chat": {
+        "name": "Chat",
+        "description": "Chat with your health assistant",
+        "recentConversations": "Recent conversations",
+        "startNewChat": "Start New Chat"
+      },
+      "export": {
+        "name": "Export Data",
+        "description": "Download your health reports"
+      }
+    },
+    "chat": {
+      "startNewChat": "Start New Chat",
+      "recentConversations": "Recent conversations",
+      "loading": "Loading…",
+      "noConversations": "No conversations yet",
+      "untitledConversation": "Untitled conversation",
+      "deleteConversation": "Delete conversation"
+    }
+  },
+  "mobileMenu": {
+    "appName": "SantéAI",
+    "navigation": {
+      "dashboard": "Dashboard",
+      "diary": "Health Diary",
+      "medications": "Medications",
+      "chat": "Chat",
+      "export": "Export Data",
+      "profile": "Profile"
+    }
+  }
+}

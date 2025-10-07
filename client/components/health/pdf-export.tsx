@@ -11,14 +11,18 @@ import {
   physicalActivityService,
   medicationService,
   healthMetricService,
+  llmService,
+  alertService,
 } from "../../lib/api";
 import { authService } from "../../lib/auth";
+import { useTranslation } from "react-i18next";
 
 interface PDFExportProps {
   userId: string;
 }
 
 export function PDFExport({ userId }: PDFExportProps) {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   );
@@ -47,6 +51,7 @@ export function PDFExport({ userId }: PDFExportProps) {
         activitiesResponse,
         medicationsResponse,
         healthMetricsResponse,
+        alertsResponse,
       ] = await Promise.all([
         userService.getUserById(userId),
         bloodSugarService.getReadings(
@@ -70,6 +75,7 @@ export function PDFExport({ userId }: PDFExportProps) {
           { page: 1, limit: 1000 },
           token
         ),
+        alertService.getAlerts({}, { page: 1, limit: 100 }, token),
       ]);
 
       // Check for errors in responses
@@ -91,6 +97,8 @@ export function PDFExport({ userId }: PDFExportProps) {
         throw new Error(
           healthMetricsResponse.error || "Failed to fetch health metrics data"
         );
+      if (!alertsResponse.success)
+        throw new Error(alertsResponse.error || "Failed to fetch alerts data");
 
       // Convert Date objects to strings for PDF generation
       const convertDatesToStrings = (items: any[]) => {
@@ -123,6 +131,44 @@ export function PDFExport({ userId }: PDFExportProps) {
         }));
       };
 
+      // Generate AI summary
+      let aiSummary = "";
+      try {
+        const summaryPrompt = `${t("pdfExport.aiPrompt.title")}
+
+            ${t("pdfExport.aiPrompt.instructions")}
+            1. Data completeness and tracking patterns
+            2. Notable trends or patterns in the data
+            3. Areas requiring attention based on the data
+            4. Positive indicators from the tracking
+            5. General observations about health management
+
+            Requirements:
+            - ${t("pdfExport.aiPrompt.requirements.noGreetings")}
+            - ${t("pdfExport.aiPrompt.requirements.noMarkdown")}
+            - ${t("pdfExport.aiPrompt.requirements.noMedicalAdvice")}
+            - ${t("pdfExport.aiPrompt.requirements.plainText")}
+            - ${t("pdfExport.aiPrompt.requirements.directFactual")}
+            - ${t("pdfExport.aiPrompt.requirements.maxParagraphs")}`;
+
+        const summaryResponse = await llmService.generateText(
+          {
+            prompt: summaryPrompt,
+            userId: userId,
+            maxTokens: 1000,
+            temperature: 0.7,
+          },
+          token
+        );
+
+        if (summaryResponse.text) {
+          aiSummary = summaryResponse.text;
+        }
+      } catch (error) {
+        console.warn("Failed to generate AI summary:", error);
+        aiSummary = t("pdfExport.aiSummaryError");
+      }
+
       // Prepare data for PDF generation
       const reportData = {
         user,
@@ -133,12 +179,24 @@ export function PDFExport({ userId }: PDFExportProps) {
         activities: convertDatesToStrings(activitiesResponse.data || []),
         medications: convertDatesToStrings(medicationsResponse.data || []),
         healthMetrics: convertDatesToStrings(healthMetricsResponse.data || []),
+        alerts: convertDatesToStrings(alertsResponse.data || []),
+        aiSummary,
         startDate,
         endDate,
       };
 
       // Generate PDF
-      const pdfBlob = await pdfExportService.generateHealthReport(reportData);
+      const pdfBlob = await pdfExportService.generateHealthReport(reportData, {
+        aiSummaryTitle: t("pdfExport.features.aiSummary"),
+        bloodSugarTitle: t("pdfExport.features.bloodSugarReadings"),
+        mealsTitle: t("pdfExport.features.mealDiary"),
+        activitiesTitle: t("pdfExport.features.physicalActivity"),
+        medicationsTitle: t("pdfExport.features.medications"),
+        healthMetricsTitle: t("pdfExport.features.healthMetrics"),
+        alertsTitle: t("pdfExport.features.healthAlerts"),
+        summaryTitle: t("pdfExport.sections.summary"),
+        trendsTitle: t("pdfExport.sections.bloodSugarTrends"),
+      });
 
       // Download the PDF
       const url = URL.createObjectURL(pdfBlob);
@@ -151,7 +209,7 @@ export function PDFExport({ userId }: PDFExportProps) {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Error generating PDF report. Please try again.");
+      alert(t("pdfExport.errorMessage"));
     } finally {
       setIsGenerating(false);
     }
@@ -161,18 +219,17 @@ export function PDFExport({ userId }: PDFExportProps) {
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-4">
         <FileText className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-semibold">Export Health Report</h3>
+        <h3 className="text-lg font-semibold">{t("pdfExport.title")}</h3>
       </div>
 
-      <p className="text-white-600 mb-4">
-        Generate a comprehensive PDF report of your health data for your doctor
-        or endocrinologist.
-      </p>
+      <p className="text-white-600 mb-4">{t("pdfExport.description")}</p>
 
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Start Date</label>
+            <label className="block text-sm font-medium mb-1">
+              {t("pdfExport.startDate")}
+            </label>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gray-500" />
               <Input
@@ -185,7 +242,9 @@ export function PDFExport({ userId }: PDFExportProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">End Date</label>
+            <label className="block text-sm font-medium mb-1">
+              {t("pdfExport.endDate")}
+            </label>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gray-500" />
               <Input
@@ -199,18 +258,26 @@ export function PDFExport({ userId }: PDFExportProps) {
           </div>
         </div>
 
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">
-            Report will include:
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+            {t("pdfExport.reportWillInclude")}
           </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Blood sugar readings and trends</li>
-            <li>• Meal diary with nutritional information</li>
-            <li>• Physical activity log</li>
-            <li>• Current medications and dosages</li>
-            <li>• Health metrics (weight, blood pressure, etc.)</li>
-            <li>• Summary statistics and insights</li>
-          </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>• {t("pdfExport.features.bloodSugarReadings")}</li>
+              <li>• {t("pdfExport.features.mealDiary")}</li>
+              <li>• {t("pdfExport.features.physicalActivity")}</li>
+              <li>• {t("pdfExport.features.medications")}</li>
+              <li>• {t("pdfExport.features.healthMetrics")}</li>
+            </ul>
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>• {t("pdfExport.features.aiSummary")}</li>
+              <li>• {t("pdfExport.features.aiConversations")}</li>
+              <li>• {t("pdfExport.features.healthAlerts")}</li>
+              <li>• {t("pdfExport.features.recommendations")}</li>
+              <li>• {t("pdfExport.features.trendAnalysis")}</li>
+            </ul>
+          </div>
         </div>
 
         <Button
@@ -219,7 +286,9 @@ export function PDFExport({ userId }: PDFExportProps) {
           className="w-full"
         >
           <Download className="h-4 w-4 mr-2" />
-          {isGenerating ? "Generating PDF..." : "Generate Health Report"}
+          {isGenerating
+            ? t("pdfExport.generatingButton")
+            : t("pdfExport.generateButton")}
         </Button>
       </div>
     </Card>

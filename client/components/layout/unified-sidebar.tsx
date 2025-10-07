@@ -14,39 +14,7 @@ import {
   Trash2,
   Heart,
 } from "lucide-react";
-
-const navigationItems = [
-  {
-    name: "Dashboard",
-    href: "/",
-    icon: Home,
-    description: "Overview of your health data",
-  },
-  {
-    name: "Health Diary",
-    href: "/diary",
-    icon: BookOpen,
-    description: "Log meals, activities, and symptoms",
-  },
-  {
-    name: "Medications",
-    href: "/medications",
-    icon: Pill,
-    description: "Manage your medications",
-  },
-  {
-    name: "Chat",
-    href: "/chat",
-    icon: MessageSquare,
-    description: "Chat with your health assistant",
-  },
-  {
-    name: "Export Data",
-    href: "/export",
-    icon: FileText,
-    description: "Download your health reports",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 interface Conversation {
   id: string;
@@ -77,9 +45,43 @@ export function UnifiedSidebar({
   isLoadingConversations = false,
   showChatFeatures = false,
 }: UnifiedSidebarProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const currentPath = location.pathname;
   const isChatPage = currentPath === "/chat";
+
+  const navigationItems = [
+    {
+      name: t("sidebar.navigation.dashboard.name"),
+      href: "/",
+      icon: Home,
+      description: t("sidebar.navigation.dashboard.description"),
+    },
+    // {
+    //   name: t("sidebar.navigation.diary.name"),
+    //   href: "/diary",
+    //   icon: BookOpen,
+    //   description: t("sidebar.navigation.diary.description"),
+    // },
+    // {
+    //   name: t("sidebar.navigation.medications.name"),
+    //   href: "/medications",
+    //   icon: Pill,
+    //   description: t("sidebar.navigation.medications.description"),
+    // },
+    {
+      name: t("sidebar.navigation.chat.name"),
+      href: "/chat",
+      icon: MessageSquare,
+      description: t("sidebar.navigation.chat.description"),
+    },
+    {
+      name: t("sidebar.navigation.export.name"),
+      href: "/export",
+      icon: FileText,
+      description: t("sidebar.navigation.export.description"),
+    },
+  ];
 
   return (
     <div className={cn("pb-12 h-full flex flex-col", className)}>
@@ -124,22 +126,22 @@ export function UnifiedSidebar({
                 disabled={!onNewConversation}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Start New Chat
+                {t("sidebar.chat.startNewChat")}
               </Button>
             </div>
 
             <div className="px-3 pt-2 text-xs text-muted-foreground">
-              Recent conversations
+              {t("sidebar.chat.recentConversations")}
             </div>
             <ScrollArea className="px-3 flex-1">
               <div className="space-y-1 py-1">
                 {isLoadingConversations ? (
                   <div className="text-xs text-muted-foreground p-2">
-                    Loading…
+                    {t("sidebar.chat.loading")}
                   </div>
                 ) : conversations.length === 0 ? (
                   <div className="text-xs text-muted-foreground p-2">
-                    No conversations yet
+                    {t("sidebar.chat.noConversations")}
                   </div>
                 ) : (
                   conversations.map((c) => (
@@ -162,7 +164,7 @@ export function UnifiedSidebar({
                       <div className="flex items-center gap-2 min-w-0 pr-2">
                         <MessageSquare className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate text-sm whitespace-pre-wrap">
-                          {c.title || "Untitled conversation"}
+                          {c.title || t("sidebar.chat.untitledConversation")}
                         </span>
                       </div>
                       {onDeleteConversation && (
@@ -173,7 +175,7 @@ export function UnifiedSidebar({
                             e.stopPropagation();
                             onDeleteConversation(c.id);
                           }}
-                          aria-label="Delete conversation"
+                          aria-label={t("sidebar.chat.deleteConversation")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
